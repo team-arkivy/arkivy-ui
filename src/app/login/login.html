@@ -1,0 +1,207 @@
+<div class="login-bg">
+    <!-- Animated network canvas background -->
+    <canvas #networkCanvas class="network-canvas"></canvas>
+  
+    <!-- Glowing orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  
+    <!-- Login Card -->
+    <div class="login-card" [class.shake]="shakeCard">
+  
+      <!-- Logo: escudo + A + tres barras (gradiente púrpura → cian como referencia) -->
+      <div class="logo-wrap">
+        <div class="logo-shield" aria-hidden="true">
+          <!-- viewBox extra a la izquierda: la A sobresale fuera del escudo; rayas recortadas al interior -->
+          <svg viewBox="-14 2 124 118" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="arkivyLogoFill" x1="-5" y1="59" x2="110" y2="59" gradientUnits="userSpaceOnUse">
+                <stop offset="0%"   stop-color="#4A0D8F"/>
+                <stop offset="28%"  stop-color="#7C3AED"/>
+                <stop offset="70%"  stop-color="#0EA5C8"/>
+                <stop offset="100%" stop-color="#22D6CC"/>
+              </linearGradient>
+              <linearGradient id="arkivyLogoStroke" x1="16" y1="59" x2="104" y2="59" gradientUnits="userSpaceOnUse">
+                <stop offset="0%"   stop-color="#8B21EA"/>
+                <stop offset="52%"  stop-color="#A78BFA"/>
+                <stop offset="100%" stop-color="#5EEAD4"/>
+              </linearGradient>
+              <filter id="arkivyLogoGlow" x="-50%" y="-40%" width="200%" height="180%">
+                <feGaussianBlur stdDeviation="2.5" result="b"/>
+                <feMerge>
+                  <feMergeNode in="b"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <path id="arkivyShieldShape"
+                d="M62 8 L24 27 V58 C24 80 40 100 62 112 C84 100 100 80 100 58 V27 L62 8 Z"/>
+              <clipPath id="arkivyShieldClip">
+                <path d="M62 8 L24 27 V58 C24 80 40 100 62 112 C84 100 100 80 100 58 V27 L62 8 Z"/>
+              </clipPath>
+            </defs>
+          
+            <g filter="url(#arkivyLogoGlow)">
+          
+              <!-- 1. Relleno del escudo -->
+              <use href="#arkivyShieldShape" fill="url(#arkivyLogoFill)" fill-opacity="0.13"/>
+          
+              <!-- 2. Barras recortadas al escudo (la A se dibujará encima luego) -->
+              <g clip-path="url(#arkivyShieldClip)">
+                <g fill="url(#arkivyLogoFill)">
+                  <path d="M50 33 h47 l3.2 3.8 -3.2 3.8 H50 l-3.2-3.8 3.2-3.8z"/>
+                  <path d="M50 46 h47 l3.2 3.8 -3.2 3.8 H50 l-3.2-3.8 3.2-3.8z"/>
+                  <path d="M50 59 h47 l3.2 3.8 -3.2 3.8 H50 l-3.2-3.8 3.2-3.8z"/>
+                </g>
+              </g>
+          
+              <!-- 3. Borde del escudo ANTES de la A → la A queda encima y no se "corta" -->
+              <use href="#arkivyShieldShape"
+                fill="none"
+                stroke="url(#arkivyLogoStroke)"
+                stroke-width="3.5"
+                stroke-linejoin="round"
+                stroke-linecap="round"/>
+          
+              <!-- 4. Letra A como paths propios (sin dependencia de fuente) → encima de todo -->
+              <g fill="url(#arkivyLogoFill)">
+                <!-- Pata izquierda: va del área del apex hacia abajo-izquierda (sale del escudo) -->
+                <polygon points="29,10 43,18 7,90 -7,82"/>
+                <!-- Pata derecha: va del área del apex hacia abajo-derecha (cubre las barras) -->
+                <polygon points="43,11 29,17 59,89 73,83"/>
+                <!-- Travesaño horizontal -->
+                <rect x="7" y="50" width="54" height="12"/>
+              </g>
+          
+            </g>
+          </svg>
+        </div>
+        <h1 class="brand-title">Sign in into <span>Arkivy</span></h1>
+      </div>
+  
+      <!-- Form -->
+      <form (ngSubmit)="onSubmit()" #loginForm="ngForm" autocomplete="off" novalidate>
+  
+        <div class="field-group">
+          <label for="username">User name or gmail</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              placeholder="Type your username"
+              [(ngModel)]="credentials.username"
+              required
+              #usernameRef="ngModel"
+              [class.input-error]="usernameRef.invalid && usernameRef.touched"
+            />
+          </div>
+          <span class="field-error" *ngIf="usernameRef.invalid && usernameRef.touched">
+            Este campo es requerido
+          </span>
+        </div>
+  
+        <div class="field-group">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <input
+              id="password"
+              name="password"
+              [type]="showPassword ? 'text' : 'password'"
+              placeholder="Type your password"
+              [(ngModel)]="credentials.password"
+              required
+              #passwordRef="ngModel"
+              [class.input-error]="passwordRef.invalid && passwordRef.touched"
+            />
+            <button type="button" class="toggle-pw" (click)="togglePassword()" tabindex="-1">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path *ngIf="!showPassword"
+                  d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                  stroke="currentColor" stroke-width="1.5"/>
+                <circle *ngIf="!showPassword" cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>
+                <path *ngIf="showPassword"
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"
+                  stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" *ngIf="passwordRef.invalid && passwordRef.touched">
+            Este campo es requerido
+          </span>
+        </div>
+  
+        <div class="forgot-row">
+          <a href="#" class="forgot-link" (click)="onForgotPassword($event)">Forgot password?</a>
+        </div>
+  
+        <button
+          type="submit"
+          class="btn-login"
+          [class.loading]="isLoading"
+          [disabled]="isLoading"
+        >
+          <span class="btn-text" *ngIf="!isLoading">LOGIN</span>
+          <span class="btn-loader" *ngIf="isLoading">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </span>
+          <div class="btn-glow"></div>
+        </button>
+  
+        <p class="error-msg" *ngIf="loginError">{{ loginError }}</p>
+  
+        <p class="terms-text">
+          Al iniciar sesión, acepta los
+          <a href="#">Términos de uso</a> y reconoce la
+          <a href="#">Declaración de privacidad</a> y la
+          <a href="#">Política de cookies</a>.
+        </p>
+  
+      </form>
+  
+      <!-- Sign up link -->
+      <p class="signup-text">
+        Don't have an account yet?
+        <a routerLink="/register" class="signup-link">sign up</a>
+      </p>
+  
+      <!-- Divider -->
+      <div class="divider">
+        <span></span>
+        <em>Or</em>
+        <span></span>
+      </div>
+  
+      <!-- OAuth Buttons -->
+      <div class="oauth-row">
+        <button type="button" class="oauth-btn oauth-google" (click)="loginWithGoogle()">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          <span>Google</span>
+        </button>
+  
+        <button type="button" class="oauth-btn oauth-microsoft" (click)="loginWithMicrosoft()">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.4 2H2v9.4h9.4V2z" fill="#F25022"/>
+            <path d="M22 2h-9.4v9.4H22V2z" fill="#7FBA00"/>
+            <path d="M11.4 12.6H2V22h9.4v-9.4z" fill="#00A4EF"/>
+            <path d="M22 12.6h-9.4V22H22v-9.4z" fill="#FFB900"/>
+          </svg>
+          <span>Microsoft</span>
+        </button>
+      </div>
+  
+    </div>
+  </div>
