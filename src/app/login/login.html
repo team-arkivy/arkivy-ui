@@ -6,73 +6,76 @@
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
     <div class="orb orb-3"></div>
-  
+
+
     <!-- Login Card -->
     <div class="login-card" [class.shake]="shakeCard">
   
-      <!-- Logo: escudo + A + tres barras (gradiente púrpura → cian como referencia) -->
+      <!-- Logo: escudo + A + tres barras - replica exacta de la imagen -->
       <div class="logo-wrap">
         <div class="logo-shield" aria-hidden="true">
-          <!-- viewBox extra a la izquierda: la A sobresale fuera del escudo; rayas recortadas al interior -->
-          <svg viewBox="-14 2 124 118" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!--
+            viewBox "-9 2 108 114":
+              - izq -9 → la pata izq de la A sobresale ~9 u fuera del escudo (x=10)
+              - ancho 108 → llega hasta x=99, el escudo termina en x=90
+          -->
+          <svg viewBox="-9 2 108 114" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <linearGradient id="arkivyLogoFill" x1="-5" y1="59" x2="110" y2="59" gradientUnits="userSpaceOnUse">
-                <stop offset="0%"   stop-color="#4A0D8F"/>
-                <stop offset="28%"  stop-color="#7C3AED"/>
-                <stop offset="70%"  stop-color="#0EA5C8"/>
-                <stop offset="100%" stop-color="#22D6CC"/>
+              <!-- Gradiente principal: azul-morado → cian (izq a der) -->
+              <linearGradient id="aLG" x1="-5" y1="58" x2="92" y2="58" gradientUnits="userSpaceOnUse">
+                <stop offset="0%"   stop-color="#6B21E8"/>
+                <stop offset="42%"  stop-color="#7C3AED"/>
+                <stop offset="78%"  stop-color="#0EA5C8"/>
+                <stop offset="100%" stop-color="#22D4CC"/>
               </linearGradient>
-              <linearGradient id="arkivyLogoStroke" x1="16" y1="59" x2="104" y2="59" gradientUnits="userSpaceOnUse">
-                <stop offset="0%"   stop-color="#8B21EA"/>
-                <stop offset="52%"  stop-color="#A78BFA"/>
+              <!-- Gradiente del borde: más brillante -->
+              <linearGradient id="aLS" x1="10" y1="6" x2="90" y2="114" gradientUnits="userSpaceOnUse">
+                <stop offset="0%"   stop-color="#9B45F5"/>
+                <stop offset="48%"  stop-color="#A78BFA"/>
                 <stop offset="100%" stop-color="#5EEAD4"/>
               </linearGradient>
-              <filter id="arkivyLogoGlow" x="-50%" y="-40%" width="200%" height="180%">
-                <feGaussianBlur stdDeviation="2.5" result="b"/>
+              <!-- Glow suave -->
+              <filter id="aGlow" x="-22%" y="-18%" width="144%" height="136%">
+                <feGaussianBlur stdDeviation="2.2" result="b"/>
                 <feMerge>
                   <feMergeNode in="b"/>
                   <feMergeNode in="SourceGraphic"/>
                 </feMerge>
               </filter>
-              <path id="arkivyShieldShape"
-                d="M62 8 L24 27 V58 C24 80 40 100 62 112 C84 100 100 80 100 58 V27 L62 8 Z"/>
-              <clipPath id="arkivyShieldClip">
-                <path d="M62 8 L24 27 V58 C24 80 40 100 62 112 C84 100 100 80 100 58 V27 L62 8 Z"/>
+              <!-- Forma del escudo: clásico, vértice arriba, punta abajo -->
+              <path id="aShield" d="M50 6 L10 24 V60 C10 86 28 104 50 114 C72 104 90 86 90 60 V24 Z"/>
+              <clipPath id="aClip">
+                <use href="#aShield"/>
               </clipPath>
             </defs>
-          
-            <g filter="url(#arkivyLogoGlow)">
-          
-              <!-- 1. Relleno del escudo -->
-              <use href="#arkivyShieldShape" fill="url(#arkivyLogoFill)" fill-opacity="0.13"/>
-          
-              <!-- 2. Barras recortadas al escudo (la A se dibujará encima luego) -->
-              <g clip-path="url(#arkivyShieldClip)">
-                <g fill="url(#arkivyLogoFill)">
-                  <path d="M50 33 h47 l3.2 3.8 -3.2 3.8 H50 l-3.2-3.8 3.2-3.8z"/>
-                  <path d="M50 46 h47 l3.2 3.8 -3.2 3.8 H50 l-3.2-3.8 3.2-3.8z"/>
-                  <path d="M50 59 h47 l3.2 3.8 -3.2 3.8 H50 l-3.2-3.8 3.2-3.8z"/>
-                </g>
+
+            <g filter="url(#aGlow)">
+
+              <!-- 1. Relleno interior oscuro semitransparente -->
+              <use href="#aShield" fill="url(#aLG)" fill-opacity="0.10"/>
+
+              <!-- 2. Tres barras con punta → , recortadas al interior del escudo -->
+              <g fill="url(#aLG)" clip-path="url(#aClip)">
+                <path d="M42 30 H88 l5.5 6 -5.5 6 H42 Z"/>
+                <path d="M42 46 H88 l5.5 6 -5.5 6 H42 Z"/>
+                <path d="M42 62 H88 l5.5 6 -5.5 6 H42 Z"/>
               </g>
-          
-              <!-- 3. Borde del escudo ANTES de la A → la A queda encima y no se "corta" -->
-              <use href="#arkivyShieldShape"
+
+              <!-- 3. Borde del escudo con gradiente brillante -->
+              <use href="#aShield"
                 fill="none"
-                stroke="url(#arkivyLogoStroke)"
-                stroke-width="3.5"
+                stroke="url(#aLS)"
+                stroke-width="3.2"
                 stroke-linejoin="round"
                 stroke-linecap="round"/>
-          
-              <!-- 4. Letra A como paths propios (sin dependencia de fuente) → encima de todo -->
-              <g fill="url(#arkivyLogoFill)">
-                <!-- Pata izquierda: va del área del apex hacia abajo-izquierda (sale del escudo) -->
-                <polygon points="29,10 43,18 7,90 -7,82"/>
-                <!-- Pata derecha: va del área del apex hacia abajo-derecha (cubre las barras) -->
-                <polygon points="43,11 29,17 59,89 73,83"/>
-                <!-- Travesaño horizontal -->
-                <rect x="7" y="50" width="54" height="12"/>
-              </g>
-          
+
+              <!-- 4. Letra A geométrica — pata izq sobresale del borde del escudo
+                   fill-rule=evenodd crea el hueco triangular interior -->
+              <path fill-rule="evenodd" fill="url(#aLG)"
+                d="M 30 18 L 50 18 L 86 104 L 71 104 L 63 68 L 12 68
+                   L 2 104 L -9 104 Z
+                   M 34 24 L 50 24 L 61 60 L 17 60 Z"/>
+
             </g>
           </svg>
         </div>
