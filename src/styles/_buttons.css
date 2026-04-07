@@ -1,0 +1,29 @@
+/* ─── Estilos de botones compartidos ─────────────────────── */
+
+/* Efecto brillo al hacer hover en botones primarios */
+.btn-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+  transform: translateX(-100%);
+  transition: transform .6s ease;
+}
+
+/* Loader de puntos animados dentro del botón */
+.btn-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  animation: dotBounce .8s ease-in-out infinite;
+}
+
+.dot:nth-child(2) { animation-delay: .15s; }
+.dot:nth-child(3) { animation-delay: .3s; }

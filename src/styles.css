@@ -1,3 +1,9 @@
-/* You can add global styles to this file, and also import other style files */
+/* ─── Global styles ──────────────────────────────────────── */
 @import "styles/_reset.css";
 @import "styles/_theme.css";
+@import "styles/_animations.css";
+@import "styles/_orbs.css";
+@import "styles/_logo.css";
+@import "styles/_forms.css";
+@import "styles/_buttons.css";
+@import "styles/_oauth.css";

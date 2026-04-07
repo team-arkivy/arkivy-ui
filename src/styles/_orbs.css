@@ -1,0 +1,30 @@
+/* ─── Orbs de ambiente (fondo animado) ───────────────────── */
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  animation: orbFloat 8s ease-in-out infinite alternate;
+}
+
+.orb-1 {
+  width: 420px; height: 420px;
+  background: radial-gradient(circle, rgba(124,58,237,.45) 0%, transparent 70%);
+  top: -120px; left: -100px;
+  animation-delay: 0s;
+}
+
+.orb-2 {
+  width: 320px; height: 320px;
+  background: radial-gradient(circle, rgba(34,211,238,.3) 0%, transparent 70%);
+  bottom: -80px; right: -60px;
+  animation-delay: -3s;
+}
+
+.orb-3 {
+  width: 260px; height: 260px;
+  background: radial-gradient(circle, rgba(168,85,247,.25) 0%, transparent 70%);
+  top: 45%; left: 65%;
+  animation-delay: -5s;
+}

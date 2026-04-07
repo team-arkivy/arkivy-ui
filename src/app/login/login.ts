@@ -98,8 +98,8 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
     console.log('Login with Google');
   }
 
-  loginWithMicrosoft(): void {
-    console.log('Login with Microsoft');
+  loginWithGitHub(): void {
+    console.log('Login with GitHub');
   }
 
   private triggerShake(): void {

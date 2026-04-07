@@ -1,0 +1,39 @@
+/* ─── Botones OAuth (Google, GitHub, etc.) ───────────────── */
+
+.oauth-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.oauth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: var(--radius-input);
+  color: var(--clr-white);
+  font-family: var(--font-body);
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition),
+              box-shadow var(--transition), transform var(--transition);
+}
+
+.oauth-btn svg,
+.oauth-btn img { width: 20px; height: 20px; flex-shrink: 0; }
+
+.oauth-btn:hover {
+  background: rgba(255,255,255,.11);
+  border-color: rgba(255,255,255,.25);
+  transform: translateY(-2px);
+}
+
+.oauth-btn:active { transform: translateY(0); }
+
+.oauth-google:hover  { box-shadow: 0 4px 18px rgba(66,133,244,.25); }
+.oauth-github:hover  { box-shadow: 0 4px 18px rgba(255,255,255,.15); }

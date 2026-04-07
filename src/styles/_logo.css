@@ -1,0 +1,47 @@
+/* ─── Logo Arkivy (escudo + brand title) ─────────────────── */
+
+.logo-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.logo-shield {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: shieldPulse 3.2s ease-in-out infinite;
+}
+
+.logo-shield svg,
+.logo-shield img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.brand-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(226, 232, 255, 0.92);
+  letter-spacing: 0.04em;
+  margin: 0;
+  font-style: italic;
+  text-shadow:
+    0 0 12px rgba(167, 139, 250, 0.55),
+    0 0 28px rgba(38, 104, 112, 0.25);
+}
+
+.brand-title span {
+  background: linear-gradient(90deg, #c4b5fd, #a855f7 40%, #22d3ee 85%, #5eead4);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 10px rgba(79, 61, 235, 0.35));
+}

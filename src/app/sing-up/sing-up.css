@@ -1,23 +1,10 @@
-/* ─── CSS Variables ─────────────────────────────────────── */
+/* Fuentes (Orbitron, Syne): enlaces en index.html */
+
+/* ─── Host ───────────────────────────────────────────────── */
 :host {
   display: block;
   width: 100%;
   height: 100%;
-  --clr-bg:        #0d0d1a;
-  --clr-surface:   rgba(18, 15, 35, 0.82);
-  --clr-border:    rgba(139, 92, 246, 0.35);
-  --clr-purple:    #7c3aed;
-  --clr-purple-lt: #a855f7;
-  --clr-cyan:      #22d3ee;
-  --clr-white:     #f1f0ff;
-  --clr-muted:     rgba(200, 190, 255, 0.55);
-  --clr-error:     #f87171;
-  --clr-input-bg:  rgba(10, 8, 25, 0.75);
-  --radius-card:   18px;
-  --radius-input:  10px;
-  --transition:    0.25s cubic-bezier(.4,0,.2,1);
-  --font-display:  'Orbitron', monospace;
-  --font-body:     'Syne', sans-serif;
 }
 
 /* ─── Wrapper full-screen ───────────────────────────────── */
@@ -49,37 +36,6 @@
     drop-shadow(0 0 18px rgba(34, 211, 238, 0.25));
 }
 
-/* ─── Orbs de ambiente ──────────────────────────────────── */
-.orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  pointer-events: none;
-  animation: orbFloat 8s ease-in-out infinite alternate;
-}
-.orb-1 {
-  width: 420px; height: 420px;
-  background: radial-gradient(circle, rgba(124,58,237,.45) 0%, transparent 70%);
-  top: -120px; left: -100px;
-  animation-delay: 0s;
-}
-.orb-2 {
-  width: 320px; height: 320px;
-  background: radial-gradient(circle, rgba(34,211,238,.3) 0%, transparent 70%);
-  bottom: -80px; right: -60px;
-  animation-delay: -3s;
-}
-.orb-3 {
-  width: 260px; height: 260px;
-  background: radial-gradient(circle, rgba(168,85,247,.25) 0%, transparent 70%);
-  top: 45%; left: 65%;
-  animation-delay: -5s;
-}
-@keyframes orbFloat {
-  from { transform: translate(0, 0) scale(1); }
-  to   { transform: translate(30px, 20px) scale(1.08); }
-}
-
 /* ─── Card ──────────────────────────────────────────────── */
 .signup-card {
   position: relative;
@@ -104,12 +60,6 @@
   overflow: hidden;
 }
 
-@keyframes cardIn {
-  from { opacity: 0; transform: translateY(28px) scale(.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* Borde degradado del card */
 .signup-card::before {
   content: '';
   position: absolute;
@@ -134,28 +84,16 @@
   z-index: 0;
 }
 
-.signup-card > * {
-  position: relative;
-  z-index: 1;
-}
+.signup-card > * { position: relative; z-index: 1; }
 
-.signup-card.shake {
-  animation: shake .45s ease both;
-}
-@keyframes shake {
-  0%,100% { transform: translateX(0); }
-  15%     { transform: translateX(-8px); }
-  45%     { transform: translateX(8px); }
-  70%     { transform: translateX(-4px); }
-  85%     { transform: translateX(4px); }
-}
+.signup-card.shake { animation: shake .45s ease both; }
 
 /* ─── Candados dentro del card ──────────────────────────── */
 .card-padlock {
   position: absolute;
   pointer-events: none;
   z-index: 0;
-  color: #22d3ee;
+  color: var(--clr-cyan);
   filter:
     drop-shadow(0 0 8px  rgba(34, 211, 238, 0.55))
     drop-shadow(0 0 22px rgba(34, 211, 238, 0.28))
@@ -163,173 +101,11 @@
   animation: lockFloat 7s ease-in-out infinite alternate;
 }
 
-/* Candado grande: esquina superior derecha del card */
-.cp-1 {
-  width: 110px;
-  top: -18px;
-  right: -22px;
-  opacity: 0.28;
-  --r: 12deg;
-  animation-delay: 0s;
-}
-/* Candado mediano: mitad derecha */
-.cp-2 {
-  width: 75px;
-  top: 42%;
-  right: -16px;
-  opacity: 0.22;
-  --r: -8deg;
-  animation-delay: -2.5s;
-}
-/* Candado pequeño: esquina inferior derecha */
-.cp-3 {
-  width: 90px;
-  bottom: -10px;
-  right: -10px;
-  opacity: 0.24;
-  --r: 6deg;
-  animation-delay: -4.8s;
-}
+.cp-1 { width: 110px; top: -18px;  right: -22px; opacity: 0.28; --r:  12deg; animation-delay: 0s; }
+.cp-2 { width:  75px; top: 42%;    right: -16px; opacity: 0.22; --r:  -8deg; animation-delay: -2.5s; }
+.cp-3 { width:  90px; bottom: -10px; right: -10px; opacity: 0.24; --r:   6deg; animation-delay: -4.8s; }
 
-@keyframes lockFloat {
-  from { transform: translateY(0px)   rotate(var(--r, 0deg)); }
-  to   { transform: translateY(-16px) rotate(var(--r, 0deg)); }
-}
-
-/* ─── Logo ──────────────────────────────────────────────── */
-.logo-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.logo-shield {
-  width: 68px;
-  height: 68px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: shieldPulse 3.2s ease-in-out infinite;
-}
-.logo-shield svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-@keyframes shieldPulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 10px rgba(147, 51, 234, 0.85))
-            drop-shadow(0 0 20px rgba(34, 211, 238, 0.4));
-  }
-  50% {
-    filter: drop-shadow(0 0 18px rgba(34, 211, 238, 0.85))
-            drop-shadow(0 0 28px rgba(168, 85, 247, 0.65));
-  }
-}
-
-.brand-title {
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: rgba(226, 232, 255, 0.92);
-  letter-spacing: 0.04em;
-  margin: 0;
-  font-style: italic;
-  text-shadow:
-    0 0 12px rgba(167, 139, 250, 0.55),
-    0 0 28px rgba(38, 104, 112, 0.25);
-}
-.brand-title span {
-  background: linear-gradient(90deg, #c4b5fd, #a855f7 40%, #22d3ee 85%, #5eead4);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* ─── Campos del formulario ─────────────────────────────── */
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 14px;
-}
-
-label {
-  font-size: 0.78rem;
-  font-weight: 500;
-  color: #f8fafc;
-  letter-spacing: 0.04em;
-  text-shadow:
-    0 0 8px rgba(167, 139, 250, 0.35),
-    0 0 16px rgba(34, 211, 238, 0.12);
-}
-
-.input-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-icon {
-  position: absolute;
-  left: 13px;
-  width: 16px;
-  height: 16px;
-  color: var(--clr-muted);
-  pointer-events: none;
-  transition: color var(--transition);
-}
-
-input {
-  width: 100%;
-  background: var(--clr-input-bg);
-  border: 1px solid var(--clr-border);
-  border-radius: var(--radius-input);
-  padding: 11px 40px 11px 38px;
-  color: var(--clr-white);
-  font-family: var(--font-body);
-  font-size: .9rem;
-  outline: none;
-  transition: border-color var(--transition), box-shadow var(--transition);
-}
-input::placeholder { color: rgba(180, 170, 220, .35); }
-
-input:focus {
-  border-color: var(--clr-purple-lt);
-  box-shadow: 0 0 0 3px rgba(168,85,247,.18), 0 0 14px rgba(124,58,237,.25);
-}
-.input-wrap:focus-within .input-icon { color: var(--clr-purple-lt); }
-
-input.input-error {
-  border-color: var(--clr-error);
-  box-shadow: 0 0 0 3px rgba(248,113,113,.15);
-}
-
-.toggle-pw {
-  position: absolute;
-  right: 12px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  color: var(--clr-muted);
-  display: flex;
-  align-items: center;
-  transition: color var(--transition);
-}
-.toggle-pw:hover { color: var(--clr-purple-lt); }
-.toggle-pw svg { width: 16px; height: 16px; }
-
-.field-error {
-  font-size: .72rem;
-  color: var(--clr-error);
-  padding-left: 4px;
-}
-
-/* ─── Botón SING UP ─────────────────────────────────────── */
+/* ─── Botón Sign Up ─────────────────────────────────────── */
 .btn-signup {
   position: relative;
   width: 100%;
@@ -349,74 +125,18 @@ input.input-error {
   transition: background-position .5s ease, box-shadow var(--transition), transform var(--transition);
   box-shadow: 0 4px 24px rgba(124,58,237,.45);
 }
+
 .btn-signup:hover:not(:disabled) {
   background-position: 100% 0;
   box-shadow: 0 6px 32px rgba(124,58,237,.65);
   transform: translateY(-1px);
 }
+
 .btn-signup:active:not(:disabled) { transform: translateY(1px); }
 .btn-signup:disabled { opacity: .75; cursor: not-allowed; }
-
-.btn-glow {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
-  transform: translateX(-100%);
-  transition: transform .6s ease;
-}
 .btn-signup:hover .btn-glow { transform: translateX(100%); }
 
-/* Dots de carga */
-.btn-loader {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-}
-.dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: #fff;
-  animation: dotBounce .8s ease-in-out infinite;
-}
-.dot:nth-child(2) { animation-delay: .15s; }
-.dot:nth-child(3) { animation-delay: .3s; }
-@keyframes dotBounce {
-  0%,80%,100% { transform: scale(.6); opacity: .5; }
-  40%         { transform: scale(1);  opacity: 1; }
-}
-
-/* ─── Error ─────────────────────────────────────────────── */
-.error-msg {
-  margin: 10px 0 0;
-  font-size: .78rem;
-  color: var(--clr-error);
-  text-align: center;
-  animation: fadeIn .3s ease;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ─── Términos ──────────────────────────────────────────── */
-.terms-text {
-  margin: 14px 0 0;
-  font-size: 0.7rem;
-  color: rgba(216, 209, 245, 0.88);
-  line-height: 1.55;
-  text-align: center;
-  text-shadow: 0 0 10px rgba(139, 92, 246, 0.25);
-}
-.terms-text a {
-  color: rgba(168,85,247,.85);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: color var(--transition);
-}
-.terms-text a:hover { color: var(--clr-purple-lt); }
-
-/* ─── Link a login ──────────────────────────────────────── */
+/* ─── Sign in link ──────────────────────────────────────── */
 .signin-text {
   margin: 14px 0 0;
   font-size: 0.78rem;
@@ -425,73 +145,22 @@ input.input-error {
   font-weight: 700;
   text-shadow: 0 0 8px rgba(34, 211, 238, 0.15);
 }
+
 .signin-link {
   color: var(--clr-white);
   font-weight: 600;
   text-decoration: none;
   transition: color var(--transition);
 }
+
 .signin-link:hover { color: var(--clr-purple-lt); }
 
-/* ─── Divider ────────────────────────────────────────────── */
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 14px 0;
-}
-.divider span {
-  flex: 1;
-  height: 1px;
-  background: var(--clr-border);
-}
-.divider em {
-  font-style: normal;
-  font-size: 0.72rem;
-  color: rgba(203, 194, 255, 0.95);
-  letter-spacing: 0.08em;
-  text-shadow: 0 0 10px rgba(167, 139, 250, 0.4);
-}
-
-/* ─── OAuth ──────────────────────────────────────────────── */
-.oauth-row {
-  display: flex;
-  justify-content: center;
-}
-
-.oauth-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  padding: 10px 32px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: var(--radius-input);
-  color: var(--clr-white);
-  font-family: var(--font-body);
-  font-size: .82rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background var(--transition), border-color var(--transition),
-              box-shadow var(--transition), transform var(--transition);
-}
-.oauth-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
-
-.oauth-btn:hover {
-  background: rgba(255,255,255,.11);
-  border-color: rgba(255,255,255,.25);
-  transform: translateY(-2px);
-}
-.oauth-btn:active { transform: translateY(0); }
-.oauth-google:hover { box-shadow: 0 4px 18px rgba(66,133,244,.25); }
+/* ─── OAuth (sing-up solo tiene Google → 1 columna) ─────── */
+.oauth-row { grid-template-columns: 1fr; }
 
 /* ─── Responsive ─────────────────────────────────────────── */
 @media (max-width: 480px) {
-  .signup-card {
-    margin: 16px;
-    padding: 28px 22px 22px;
-  }
+  .signup-card { margin: 16px; padding: 28px 22px 22px; }
   .brand-title { font-size: 1rem; }
   .cp-1 { width: 75px; }
   .cp-2, .cp-3 { display: none; }

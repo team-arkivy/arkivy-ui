@@ -1,4 +1,21 @@
+/* ─── Design tokens globales ─────────────────────────────── */
 :root {
-  --color-primario: #3498db;
-  --color-fondo: #ffffff;
+  --clr-bg:           #0d0d1a;
+  --clr-surface:      rgba(18, 15, 35, 0.82);
+  --clr-border:       rgba(139, 92, 246, 0.35);
+  --clr-border-glow:  rgba(139, 92, 246, 0.7);
+  --clr-purple:       #7c3aed;
+  --clr-purple-lt:    #a855f7;
+  --clr-cyan:         #22d3ee;
+  --clr-white:        #f1f0ff;
+  --clr-muted:        rgba(200, 190, 255, 0.55);
+  --clr-error:        #f87171;
+  --clr-input-bg:     rgba(10, 8, 25, 0.75);
+
+  --radius-card:      18px;
+  --radius-input:     10px;
+  --transition:       0.25s cubic-bezier(.4,0,.2,1);
+
+  --font-display:     'Orbitron', monospace;
+  --font-body:        'Syne', sans-serif;
 }

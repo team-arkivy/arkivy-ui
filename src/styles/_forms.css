@@ -1,0 +1,132 @@
+/* ─── Campos de formulario compartidos ───────────────────── */
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #f8fafc;
+  letter-spacing: 0.04em;
+  text-shadow:
+    0 0 8px rgba(167, 139, 250, 0.35),
+    0 0 16px rgba(34, 211, 238, 0.12);
+}
+
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 13px;
+  width: 16px;
+  height: 16px;
+  color: var(--clr-muted);
+  pointer-events: none;
+  transition: color var(--transition);
+}
+
+input {
+  width: 100%;
+  background: var(--clr-input-bg);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-input);
+  padding: 11px 40px 11px 38px;
+  color: var(--clr-white);
+  font-family: var(--font-body);
+  font-size: .9rem;
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+input::placeholder { color: rgba(180, 170, 220, .35); }
+
+input:focus {
+  border-color: var(--clr-purple-lt);
+  box-shadow: 0 0 0 3px rgba(168,85,247,.18), 0 0 14px rgba(124,58,237,.25);
+}
+
+.input-wrap:focus-within .input-icon { color: var(--clr-purple-lt); }
+
+input.input-error {
+  border-color: var(--clr-error);
+  box-shadow: 0 0 0 3px rgba(248,113,113,.15);
+}
+
+.toggle-pw {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: var(--clr-muted);
+  display: flex;
+  align-items: center;
+  transition: color var(--transition);
+}
+
+.toggle-pw:hover { color: var(--clr-purple-lt); }
+.toggle-pw svg   { width: 16px; height: 16px; }
+
+.field-error {
+  font-size: .72rem;
+  color: var(--clr-error);
+  padding-left: 4px;
+}
+
+.error-msg {
+  margin: 10px 0 0;
+  font-size: .78rem;
+  color: var(--clr-error);
+  text-align: center;
+  animation: fadeIn .3s ease;
+}
+
+/* ─── Divider ────────────────────────────────────────────── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.divider span {
+  flex: 1;
+  height: 1px;
+  background: var(--clr-border);
+}
+
+.divider em {
+  font-style: normal;
+  font-size: 0.72rem;
+  color: rgba(203, 194, 255, 0.95);
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 10px rgba(167, 139, 250, 0.4);
+}
+
+/* ─── Texto de términos ──────────────────────────────────── */
+.terms-text {
+  margin: 14px 0 0;
+  font-size: 0.7rem;
+  color: rgba(216, 209, 245, 0.88);
+  line-height: 1.55;
+  text-align: center;
+  text-shadow: 0 0 10px rgba(139, 92, 246, 0.25);
+}
+
+.terms-text a {
+  color: rgba(168,85,247,.85);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color var(--transition);
+}
+
+.terms-text a:hover { color: var(--clr-purple-lt); }
