@@ -1,0 +1,91 @@
+<div class="groups-layout">
+
+  <!-- ─── Panel izquierdo: Lista de grupos ─────────────────── -->
+  <aside class="groups-list-panel">
+
+    <div class="groups-breadcrumb">
+      <span class="breadcrumb-dot"></span>
+      <span class="breadcrumb-base">Groups</span>
+      @if (selectedGroup) {
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">{{ selectedGroup.name }}</span>
+      }
+    </div>
+
+    <div class="groups-search-wrap">
+      <app-icon name="search" class="search-icon" />
+      <input
+        type="text"
+        placeholder="Search groups..."
+        [(ngModel)]="searchQuery"
+        class="groups-search-input"
+      />
+    </div>
+
+    <div class="groups-list">
+      @for (group of filteredGroups; track group.id) {
+        <button
+          class="group-list-item"
+          [class.selected]="group.id === selectedGroupId"
+          (click)="selectGroup(group)">
+          {{ group.name }}
+        </button>
+      }
+    </div>
+
+  </aside>
+
+  <!-- ─── Panel derecho: Detalle del grupo ─────────────────── -->
+  @if (selectedGroup) {
+    <div class="group-detail">
+
+      <div class="group-detail-header">
+        <h1 class="group-title">{{ selectedGroup.name }}</h1>
+        <p class="group-members">{{ selectedGroup.memberCount }} members</p>
+      </div>
+
+      <div class="tabs-bar">
+        <button class="tab-btn" [class.active]="activeTab === 'access'" (click)="setTab('access')">Access</button>
+        <button class="tab-btn" [class.active]="activeTab === 'users'"  (click)="setTab('users')">Users</button>
+      </div>
+
+      @if (activeTab === 'access') {
+        <div class="access-content">
+          <p class="access-description">This group has access to the following documentation</p>
+          <div class="access-list">
+            @for (category of selectedGroup.access; track category.name) {
+              <div class="access-category">
+                <div class="access-row category-row">
+                  <span class="access-name category-name">{{ category.name }}</span>
+                  <select class="role-select" [(ngModel)]="category.role">
+                    @for (role of roles; track role) {
+                      <option [value]="role">{{ role }}</option>
+                    }
+                  </select>
+                </div>
+                @for (doc of category.documents; track doc.name) {
+                  <div class="access-row doc-row">
+                    <span class="access-name doc-name">{{ doc.name }}</span>
+                    <select class="role-select" [(ngModel)]="doc.role">
+                      @for (role of roles; track role) {
+                        <option [value]="role">{{ role }}</option>
+                      }
+                    </select>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (activeTab === 'users') {
+        <div class="users-tab-content">
+          <p class="empty-state">No users in this group yet.</p>
+        </div>
+      }
+
+    </div>
+  }
+
+</div>

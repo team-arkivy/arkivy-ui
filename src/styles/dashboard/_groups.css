@@ -1,0 +1,323 @@
+/* ================================================================
+   Dashboard – Página Groups
+   Selector raíz: app-groups
+   ================================================================ */
+
+app-groups {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+}
+
+.groups-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* ─── Panel izquierdo: Lista de grupos ───────────────────── */
+.groups-list-panel {
+  width: 260px;
+  flex-shrink: 0;
+  background: rgba(10, 8, 22, 0.72);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border-right: 1px solid rgba(139, 92, 246, 0.22);
+  box-shadow: 2px 0 20px rgba(124, 58, 237, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: cardIn 0.45s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+/* ─── Breadcrumb ─────────────────────────────────────────── */
+.groups-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 16px 12px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.16);
+  flex-wrap: wrap;
+}
+
+.breadcrumb-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dash-active-bg);
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(109, 69, 212, 0.8);
+}
+
+.breadcrumb-base {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: rgba(240, 235, 255, 0.9);
+  cursor: pointer;
+  transition: color 0.15s;
+  text-shadow: 0 0 12px rgba(167, 139, 250, 0.25);
+}
+
+.breadcrumb-base:hover { color: #a855f7; }
+
+.breadcrumb-sep {
+  font-size: 13px;
+  color: rgba(200, 190, 255, 0.3);
+}
+
+.breadcrumb-current {
+  font-size: 12.5px;
+  color: rgba(200, 190, 255, 0.55);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+}
+
+/* ─── Búsqueda ───────────────────────────────────────────── */
+.groups-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 12px 8px;
+  padding: 7px 12px;
+  background: rgba(14, 11, 28, 0.65);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.groups-search-wrap:focus-within {
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.18);
+}
+
+.groups-search-wrap .search-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: rgba(200, 190, 255, 0.38);
+}
+
+.groups-search-input {
+  border: none;
+  background: transparent;
+  color: var(--clr-white);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  width: 100%;
+  outline: none;
+}
+
+.groups-search-input::placeholder {
+  color: rgba(200, 190, 255, 0.32);
+}
+
+/* ─── Lista ──────────────────────────────────────────────── */
+.groups-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.group-list-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: rgba(200, 190, 255, 0.5);
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background 0.14s, color 0.14s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.group-list-item:hover {
+  background: rgba(139, 92, 246, 0.1);
+  color: rgba(240, 235, 255, 0.88);
+}
+
+.group-list-item.selected {
+  background: rgba(109, 69, 212, 0.22);
+  color: rgba(240, 235, 255, 0.96);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(139, 92, 246, 0.3);
+}
+
+/* ─── Panel derecho: Detalle ─────────────────────────────── */
+.group-detail {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: rgba(6, 4, 16, 0.35);
+}
+
+.group-detail-header {
+  padding: 26px 28px 16px;
+  flex-shrink: 0;
+}
+
+.group-title {
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--clr-white);
+  margin: 0 0 5px;
+  text-shadow: 0 0 20px rgba(167, 139, 250, 0.22);
+}
+
+.group-members {
+  font-size: 13px;
+  color: rgba(200, 190, 255, 0.42);
+  margin: 0;
+}
+
+/* ─── Tabs ────────────────────────────────────────────────── */
+.tabs-bar {
+  display: flex;
+  padding: 0 28px;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  padding: 9px 4px 10px;
+  margin-right: 24px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(200, 190, 255, 0.5);
+  font-family: var(--font-ui);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.tab-btn:hover { color: rgba(240, 235, 255, 0.88); }
+
+.tab-btn.active {
+  color: rgba(240, 235, 255, 0.95);
+  border-bottom-color: #7c3aed;
+  text-shadow: 0 0 12px rgba(167, 139, 250, 0.3);
+}
+
+/* ─── Tab Access ─────────────────────────────────────────── */
+.access-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 22px 28px;
+  animation: cardIn 0.4s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.access-description {
+  font-size: 13.5px;
+  color: rgba(200, 190, 255, 0.55);
+  margin: 0 0 20px;
+}
+
+.access-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.access-category {
+  border-bottom: 1px solid rgba(139, 92, 246, 0.12);
+  padding: 12px 0;
+}
+
+.access-category:last-child { border-bottom: none; }
+
+.access-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 34px;
+}
+
+.category-row { margin-bottom: 8px; }
+
+.doc-row {
+  padding-left: 18px;
+  margin-bottom: 4px;
+}
+
+.access-name {
+  font-size: 14px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.category-name {
+  font-weight: 600;
+  color: rgba(240, 235, 255, 0.92);
+}
+
+.doc-name {
+  font-weight: 400;
+  color: rgba(200, 190, 255, 0.58);
+  font-size: 13.5px;
+}
+
+/* ─── Selector de rol ────────────────────────────────────── */
+.role-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(14, 11, 28, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 7px;
+  color: rgba(220, 210, 255, 0.85);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  padding: 5px 26px 5px 10px;
+  cursor: pointer;
+  outline: none;
+  flex-shrink: 0;
+  min-width: 92px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b8ba8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  background-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.role-select:hover { border-color: rgba(139, 92, 246, 0.55); }
+
+.role-select:focus {
+  border-color: rgba(139, 92, 246, 0.75);
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.25);
+}
+
+/* ─── Tab Users ──────────────────────────────────────────── */
+.users-tab-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px;
+}
+
+.empty-state {
+  font-size: 14px;
+  color: rgba(200, 190, 255, 0.35);
+  margin: 0;
+}

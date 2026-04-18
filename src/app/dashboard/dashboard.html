@@ -1,0 +1,154 @@
+<div class="dash-layout">
+
+  <!-- ─── Fondo animado ────────────────────────────────────── -->
+  <canvas #networkCanvas class="network-canvas"></canvas>
+
+  <!-- ─── Orbs de ambiente ─────────────────────────────────── -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="orb orb-4"></div>
+
+  <!-- ─── Íconos decorativos flotantes ─────────────────────── -->
+  <img src="/icons/icon-lock.svg" alt="" class="bg-padlock bp-1" aria-hidden="true">
+  <img src="/icons/icon-lock.svg" alt="" class="bg-padlock bp-2" aria-hidden="true">
+  <img src="/icons/icon-lock.svg" alt="" class="bg-padlock bp-3" aria-hidden="true">
+
+  <!-- ─── Sidebar ────────────────────────────────────────────── -->
+  <aside class="sidebar" [class.sidebar-collapsed]="!sidebarOpen">
+    <div class="sidebar-brand">
+      <span class="brand-name">Arkivy</span>
+      <button class="panel-toggle-inner" (click)="toggleSidebar()">
+        <app-icon name="layout" />
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <!-- Documentation con expansión de espacios -->
+      <div class="nav-section">
+        <a routerLink="/dashboard/documentation"
+           routerLinkActive="active"
+           #docLink="routerLinkActive"
+           class="nav-item">
+          <app-icon name="doc" class="nav-icon" />
+          <span>Documentation</span>
+        </a>
+        @if (docLink.isActive) {
+          <div class="nav-spaces">
+            @for (space of docService.spaces; track space.id) {
+              <div
+                class="nav-space-item"
+                [class.active]="space.id === docService.selectedSpaceId()"
+                (click)="docService.selectSpace(space.id)">
+                <app-icon name="folder" class="nav-icon-sm" />
+                <span class="nav-space-label">{{ space.name }}</span>
+                <button class="nav-space-kebab" (click)="$event.stopPropagation()">
+                  <app-icon name="more-horizontal" />
+                </button>
+              </div>
+            }
+            <button class="nav-space-action">
+              <app-icon name="folder-plus" class="nav-icon-sm" />
+              <span>Create a new space</span>
+            </button>
+          </div>
+        }
+      </div>
+
+      <a routerLink="/dashboard/users" routerLinkActive="active" class="nav-item">
+        <app-icon name="user" class="nav-icon" />
+        <span>Users</span>
+      </a>
+      <a routerLink="/dashboard/groups" routerLinkActive="active" class="nav-item">
+        <app-icon name="users" class="nav-icon" />
+        <span>Groups</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span class="footer-label">Inicio</span>
+    </div>
+  </aside>
+
+  <!-- ─── Cuerpo principal ──────────────────────────────────── -->
+  <div class="dash-body">
+    <header class="dash-header">
+      <div class="header-left">
+        @if (docLink.isActive) {
+          <nav class="breadcrumb" aria-label="breadcrumb">
+            <span class="breadcrumb-item">Documentation</span>
+            <span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-item">{{ docService.selectedSpace.name }}</span>
+            <span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-item breadcrumb-current">{{ docService.selectedDoc() }}</span>
+          </nav>
+        }
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn">
+          <app-icon name="help" />
+        </button>
+        <button class="icon-btn avatar-btn">
+          <app-icon name="user" />
+        </button>
+      </div>
+    </header>
+
+    <main class="dash-main">
+      <router-outlet />
+    </main>
+  </div>
+
+  <!-- ─── Panel TOC (full height, al mismo nivel que el sidebar) ── -->
+  @if (docLink.isActive) {
+    <aside class="doc-toc-panel" [class.toc-collapsed]="!docService.tocOpen()">
+      <div class="toc-panel-header">
+        <button class="panel-toggle-inner" (click)="docService.toggleToc()">
+          <app-icon name="layout-right" />
+        </button>
+      </div>
+      <h2 class="toc-space-title">{{ docService.selectedSpace.name }}</h2>
+
+      @for (section of docService.selectedSpace.tableOfContents; track section.category) {
+        <div class="toc-section">
+          <div class="toc-section-header">
+            <span class="toc-category">{{ section.category }}</span>
+            <button class="toc-info-btn" type="button">
+              <app-icon name="info" class="toc-info-icon" />
+            </button>
+          </div>
+          <div class="toc-items">
+            @for (doc of section.items; track doc) {
+              <button
+                class="toc-doc-item"
+                [class.active]="doc === docService.selectedDoc()"
+                (click)="docService.selectDoc(doc)">
+                <app-icon name="doc" class="toc-icon" />
+                <span>{{ doc }}</span>
+              </button>
+            }
+            <button class="toc-action-item">{{ section.action }}</button>
+          </div>
+        </div>
+      }
+    </aside>
+  }
+
+  <!-- ─── Botón flotante: sidebar colapsado ────────────────── -->
+  @if (!sidebarOpen) {
+    <div class="floating-panel-btn floating-left" (click)="toggleSidebar()">
+      <img src="/icons/arkivy-logo.svg" alt="" class="floating-logo" />
+      <span class="floating-label">Arkivy</span>
+      <app-icon name="layout" class="floating-icon" />
+    </div>
+  }
+
+  <!-- ─── Botón flotante: TOC colapsado ────────────────────── -->
+  @if (docLink.isActive && !docService.tocOpen()) {
+    <button class="floating-panel-btn floating-right" (click)="docService.toggleToc()">
+      <app-icon name="layout-right" class="floating-icon" />
+    </button>
+  }
+
+</div>
