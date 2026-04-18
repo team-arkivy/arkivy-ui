@@ -1,0 +1,96 @@
+<div class="users-page">
+
+  <!-- ─── Barra de filtros ─────────────────────────────────── -->
+  <div class="filter-bar">
+    <div class="page-indicator">
+      <span class="indicator-dot"></span>
+      Users
+    </div>
+
+    <div class="filter-inputs">
+      <div class="search-field">
+        <app-icon name="search" class="search-icon" />
+        <input type="text" placeholder="Email"   [(ngModel)]="filterEmail"   class="filter-input" />
+      </div>
+      <div class="search-field">
+        <app-icon name="search" class="search-icon" />
+        <input type="text" placeholder="Group"   [(ngModel)]="filterGroup"   class="filter-input" />
+      </div>
+      <div class="search-field">
+        <app-icon name="search" class="search-icon" />
+        <input type="text" placeholder="Name"    [(ngModel)]="filterName"    class="filter-input" />
+      </div>
+      <div class="search-field">
+        <app-icon name="search" class="search-icon" />
+        <input type="text" placeholder="User ID" [(ngModel)]="filterUserId"  class="filter-input" />
+      </div>
+    </div>
+
+    <button class="btn-add-user">
+      <app-icon name="plus" />
+      Add user
+    </button>
+  </div>
+
+  <!-- ─── Tabla ──────────────────────────────────────────── -->
+  <div class="table-wrapper">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th class="col-user">User</th>
+          <th class="col-email">Email address</th>
+          <th class="col-group">Group</th>
+          <th class="col-status">Status</th>
+          <th class="col-access">Last access</th>
+          <th class="col-actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of filteredUsers; track user.id) {
+          <tr class="user-row">
+            <td class="col-user">
+              <div class="user-cell">
+                <div class="user-avatar">{{ user.initials }}</div>
+                <div class="user-info">
+                  <span class="user-name">{{ user.name }}</span>
+                  <span class="user-id">{{ user.id }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="col-email"><span class="cell-text">{{ user.email }}</span></td>
+            <td class="col-group"><span class="cell-text">{{ user.group }}</span></td>
+            <td class="col-status">
+              <span class="status-badge" [class.active]="user.status === 'Active'">
+                {{ user.status }}
+              </span>
+            </td>
+            <td class="col-access"><span class="cell-text">{{ user.lastAccess }}</span></td>
+            <td class="col-actions">
+              <button class="row-action-btn">
+                <app-icon name="more-vertical" />
+              </button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ─── Footer ─────────────────────────────────────────── -->
+  <div class="table-footer">
+    <span class="results-count">{{ resultCount }} results</span>
+    <div class="pagination">
+      <button class="page-btn" [disabled]="true">
+        <app-icon name="chevron-left" />
+      </button>
+      <button class="page-btn" [disabled]="true">
+        <app-icon name="chevron-right" />
+      </button>
+      <button class="page-size-btn">
+        10 / page
+        <app-icon name="chevron-down" />
+      </button>
+    </div>
+  </div>
+
+</div>

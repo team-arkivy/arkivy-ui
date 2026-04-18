@@ -18,4 +18,18 @@
 
   --font-display:     'Orbitron', monospace;
   --font-body:        'Syne', sans-serif;
+  --font-ui:          'Inter', sans-serif;
+
+  /* ─── Dashboard tokens ─────────────────────────────────── */
+  --dash-bg:          #12131c;
+  --dash-sidebar:     #191a27;
+  --dash-panel:       #1e1f2d;
+  --dash-border:      rgba(255, 255, 255, 0.07);
+  --dash-border-vis:  rgba(255, 255, 255, 0.12);
+  --dash-text:        #e2e2ee;
+  --dash-text-dim:    #8b8ba8;
+  --dash-text-muted:  #5a5a70;
+  --dash-active-bg:   #6d45d4;
+  --dash-hover:       rgba(255, 255, 255, 0.05);
+  --dash-status-ok:   #22c55e;
 }
