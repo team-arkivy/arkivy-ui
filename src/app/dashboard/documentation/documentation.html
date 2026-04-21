@@ -1,10 +1,49 @@
 <div class="doc-layout">
-
   <main class="doc-content">
-    <h1 class="doc-title">{{ docService.selectedDoc() }}</h1>
-    <div class="doc-body">
-      <p class="doc-placeholder">Document content area</p>
-    </div>
-  </main>
 
+    <div class="notion-page">
+
+      <!-- Title -->
+      <input
+        class="notion-title"
+        type="text"
+        placeholder="Nuevo titulo"
+        [value]="page().title"
+        (input)="onTitleInput($event)"
+      />
+
+      <!-- Blocks -->
+      <div class="notion-blocks">
+        @for (block of page().blocks; track trackById($index, block); let i = $index) {
+          <div
+            class="notion-block-row"
+            [class.is-dragging]="draggingIdx === i"
+            [class.drag-over]="dragOverIdx === i && draggingIdx !== i"
+            [attr.draggable]="true"
+            (dragstart)="onDragStart($event, i)"
+            (dragover)="onDragOver($event, i)"
+            (drop)="onDrop($event, i)"
+            (dragend)="onDragEnd()"
+          >
+            <div class="drag-handle" title="Mover">
+              <span></span><span></span><span></span>
+              <span></span><span></span><span></span>
+            </div>
+            <textarea
+              #blockRef
+              class="notion-block"
+              rows="1"
+              [attr.data-block-id]="block.id"
+              [value]="block.content"
+              placeholder="Escribe algo..."
+              (input)="onBlockInput($event, block.id)"
+              (keydown)="onBlockKeydown($event, block)"
+            ></textarea>
+          </div>
+        }
+      </div>
+
+    </div>
+
+  </main>
 </div>

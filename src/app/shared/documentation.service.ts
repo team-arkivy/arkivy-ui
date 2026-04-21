@@ -12,6 +12,16 @@ export interface DocSpace {
   tableOfContents: TocSection[];
 }
 
+export interface DocBlock {
+  id: string;
+  content: string;
+}
+
+export interface DocPage {
+  title: string;
+  blocks: DocBlock[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class DocumentationService {
   readonly spaces: DocSpace[] = [
@@ -32,6 +42,48 @@ export class DocumentationService {
   selectedDoc = signal<string>('Tutorial_number_one');
   tocOpen = signal<boolean>(true);
 
+  private pages = new Map<string, DocPage>();
+
+  getPage(docName: string): DocPage {
+    if (!this.pages.has(docName)) {
+      this.pages.set(docName, { title: '', blocks: [{ id: this.newId(), content: '' }] });
+    }
+    return this.pages.get(docName)!;
+  }
+
+  updateTitle(docName: string, title: string): void {
+    const page = this.getPage(docName);
+    page.title = title;
+  }
+
+  updateBlock(docName: string, blockId: string, content: string): void {
+    const page = this.getPage(docName);
+    const block = page.blocks.find(b => b.id === blockId);
+    if (block) block.content = content;
+  }
+
+  insertBlockAfter(docName: string, blockId: string): string {
+    const page = this.getPage(docName);
+    const idx = page.blocks.findIndex(b => b.id === blockId);
+    const newBlock: DocBlock = { id: this.newId(), content: '' };
+    page.blocks.splice(idx + 1, 0, newBlock);
+    return newBlock.id;
+  }
+
+  deleteBlock(docName: string, blockId: string): string | null {
+    const page = this.getPage(docName);
+    if (page.blocks.length <= 1) return null;
+    const idx = page.blocks.findIndex(b => b.id === blockId);
+    page.blocks.splice(idx, 1);
+    return page.blocks[Math.max(0, idx - 1)].id;
+  }
+
+  moveBlock(docName: string, fromIdx: number, toIdx: number): void {
+    const page = this.getPage(docName);
+    const [block] = page.blocks.splice(fromIdx, 1);
+    page.blocks.splice(toIdx, 0, block);
+  }
+
   toggleToc(): void {
     this.tocOpen.update(v => !v);
   }
@@ -50,5 +102,9 @@ export class DocumentationService {
 
   selectDoc(name: string): void {
     this.selectedDoc.set(name);
+  }
+
+  private newId(): string {
+    return Math.random().toString(36).slice(2, 10);
   }
 }
