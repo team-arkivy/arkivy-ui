@@ -1,5 +1,5 @@
 import {
-  Component, inject, computed, ElementRef, ViewChildren,
+  Component, inject, computed, ElementRef, ViewChildren, ViewChild,
   QueryList, AfterViewChecked
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -19,12 +19,14 @@ export class DocumentationComponent implements AfterViewChecked {
   private pendingFocusEnd = false;
 
   @ViewChildren('blockRef') blockRefs!: QueryList<ElementRef<HTMLTextAreaElement>>;
+  @ViewChild('titleRef') titleRef!: ElementRef<HTMLTextAreaElement>;
 
   page = computed(() => this.docService.getPage(this.docService.selectedDoc()));
 
-  // --- Drag state ---
+  // dragOverIdx is a gap position: 0 = before block 0, N = before block N, blocks.length = after last
   draggingIdx: number | null = null;
   dragOverIdx: number | null = null;
+
   ngAfterViewChecked(): void {
     if (this.pendingFocusId) {
       const id = this.pendingFocusId;
@@ -45,8 +47,15 @@ export class DocumentationComponent implements AfterViewChecked {
   }
 
   onTitleInput(event: Event): void {
-    const val = (event.target as HTMLInputElement).value;
-    this.docService.updateTitle(this.docService.selectedDoc(), val);
+    const ta = event.target as HTMLTextAreaElement;
+    this.docService.updateTitle(this.docService.selectedDoc(), ta.value);
+    this.autoResize(ta);
+  }
+
+  onTitleKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+    }
   }
 
   onBlockInput(event: Event, blockId: string): void {
@@ -99,13 +108,35 @@ export class DocumentationComponent implements AfterViewChecked {
   onDragOver(event: DragEvent, idx: number): void {
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-    this.dragOverIdx = idx;
+    const el = event.currentTarget as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    // Top half → insert before idx, bottom half → insert after idx
+    this.dragOverIdx = event.clientY <= rect.top + rect.height / 2 ? idx : idx + 1;
   }
 
-  onDrop(event: DragEvent, toIdx: number): void {
+  onDragOverTitle(event: DragEvent): void {
     event.preventDefault();
-    if (this.draggingIdx !== null && this.draggingIdx !== toIdx) {
-      this.docService.moveBlock(this.docService.selectedDoc(), this.draggingIdx, toIdx);
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    this.dragOverIdx = 0;
+  }
+
+  onDragOverEnd(event: DragEvent): void {
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    this.dragOverIdx = this.page().blocks.length;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    if (this.draggingIdx !== null && this.dragOverIdx !== null) {
+      const from = this.draggingIdx;
+      const gap = this.dragOverIdx;
+      // Skip if gap is the block's current position or immediately after it
+      if (gap !== from && gap !== from + 1) {
+        // Adjust for the index shift caused by removing the dragged element
+        const actualTo = gap <= from ? gap : gap - 1;
+        this.docService.moveBlock(this.docService.selectedDoc(), from, actualTo);
+      }
     }
     this.draggingIdx = null;
     this.dragOverIdx = null;
