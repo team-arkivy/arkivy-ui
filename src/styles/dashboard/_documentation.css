@@ -1,6 +1,5 @@
 /* ================================================================
-   Dashboard – Página Documentation
-   Selector raíz: app-documentation
+   Dashboard – Página Documentation (Notion-style editor)
    ================================================================ */
 
 app-documentation {
@@ -10,7 +9,6 @@ app-documentation {
   height: 100%;
 }
 
-/* ─── Layout de 1 columna (el TOC vive en el dashboard) ─── */
 .doc-layout {
   display: flex;
   flex: 1;
@@ -18,72 +16,157 @@ app-documentation {
   height: 100%;
 }
 
-/* ─── Panel 1: Contenido del documento ───────────────────── */
 .doc-content {
   flex: 1;
   min-width: 0;
   overflow-y: auto;
-  padding: 30px 34px;
+  padding: 60px 80px 120px;
   background: rgba(6, 4, 16, 0.45);
 }
 
-.doc-title {
-  font-size: 22px;
-  font-weight: 600;
+/* ─── Notion page container ─── */
+.notion-page {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ─── Title ─── */
+.notion-title {
+  display: block;
+  width: 100%;
+  font-size: 40px;
+  font-weight: 700;
   color: var(--clr-white);
-  margin: 0 0 22px;
-  letter-spacing: -0.01em;
-  text-shadow: 0 0 20px rgba(167, 139, 250, 0.25);
-}
-
-.doc-body {
-  position: relative;
-  background: rgba(18, 15, 35, 0.72);
-  backdrop-filter: blur(12px) saturate(130%);
-  -webkit-backdrop-filter: blur(12px) saturate(130%);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 12px;
-  min-height: 380px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow:
-    0 0 28px rgba(124, 58, 237, 0.12),
-    0 0 48px rgba(34, 211, 238, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  margin: 0 0 8px;
+  padding: 4px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  font-family: var(--font-ui);
+  resize: none;
   overflow: hidden;
-  animation: cardIn 0.5s cubic-bezier(.22, 1, .36, 1) both;
-  animation-delay: 0.1s;
 }
 
-.doc-body::before {
+.notion-title:focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
+
+.notion-title::placeholder {
+  color: rgba(200, 190, 255, 0.2);
+}
+
+/* ─── Blocks list ─── */
+.notion-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ─── Block row (handle + textarea) ─── */
+.notion-block-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  position: relative;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+
+.notion-block-row:hover .drag-handle {
+  opacity: 1;
+}
+
+.notion-block-row.is-dragging {
+  opacity: 0.4;
+}
+
+.notion-block-row.drag-over::before {
   content: '';
   position: absolute;
-  top: -2px; left: -2px; right: -2px; bottom: -2px;
-  border-radius: 14px;
-  background: linear-gradient(
-    135deg,
-    rgba(157, 101, 209, 0.5) 0%,
-    rgba(90, 43, 172, 0.2) 25%,
-    transparent 45%,
-    transparent 55%,
-    rgba(34, 211, 238, 0.2) 78%,
-    rgba(94, 234, 212, 0.45) 100%
-  );
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 0;
+  background: rgba(139, 92, 246, 0.7);
   pointer-events: none;
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  -webkit-mask-composite: destination-out;
-  padding: 2px;
-  opacity: 0.8;
 }
 
-.doc-placeholder {
-  color: rgba(200, 190, 255, 0.28);
-  font-size: 14px;
-  margin: 0;
-  position: relative;
+/* ─── Drag handle ─── */
+.drag-handle {
+  position: absolute;
+  left: -28px;
+  top: 4px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  width: 16px;
+  opacity: 0;
+  cursor: grab;
+  transition: opacity 0.15s;
+  padding: 2px;
   z-index: 1;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle span {
+  display: block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.55);
+}
+
+/* ─── Paragraph textarea ─── */
+.notion-block {
+  flex: 1;
+  font-size: 16px;
+  line-height: 1.6;
+  color: rgba(240, 235, 255, 0.88);
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  min-height: 28px;
+  padding: 4px 0;
+  font-family: var(--font-ui);
+  border-radius: 4px;
+  transition: background 0.1s;
+}
+
+.notion-block::placeholder {
+  color: rgba(200, 190, 255, 0.2);
+}
+
+.notion-block:focus {
+  background: rgba(139, 92, 246, 0.06);
+}
+
+/* ─── Drop zone after last block ─── */
+.drop-after-last {
+  min-height: 120px;
+  position: relative;
+}
+
+.drop-after-last.active::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 0;
+  background: rgba(139, 92, 246, 0.7);
+  pointer-events: none;
 }
 
 /* ─── Panel TOC (full height — vive en dash-layout) ─────── */

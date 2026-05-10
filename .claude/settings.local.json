@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\CHRISTIAN\\\\Documents\\\\Go-to-alemania\\\\arkivy-ui\" -Recurse -Filter \"*.ts\")",
+      "Bash(Select-Object -ExpandProperty FullName)"
+    ]
+  }
+}
