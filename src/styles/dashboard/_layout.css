@@ -435,7 +435,7 @@ app-dashboard {
 /* ─── Botones flotantes (paneles colapsados) ──────────────── */
 .floating-panel-btn {
   position: fixed;
-  top: 10px;
+  top: 58px;
   z-index: 100;
   display: flex;
   align-items: center;

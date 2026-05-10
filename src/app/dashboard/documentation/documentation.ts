@@ -21,9 +21,9 @@ export class DocumentationComponent implements AfterViewChecked {
   @ViewChildren('blockRef') blockRefs!: QueryList<ElementRef<HTMLTextAreaElement>>;
   @ViewChild('titleRef') titleRef!: ElementRef<HTMLTextAreaElement>;
 
-  page = computed(() => this.docService.getPage(this.docService.selectedDoc()));
+  // Suscribe al WritableSignal<DocPage> del servicio para que moveBlock dispare re-render
+  page = computed(() => this.docService.getPageSignal(this.docService.selectedDoc())());
 
-  // dragOverIdx is a gap position: 0 = before block 0, N = before block N, blocks.length = after last
   draggingIdx: number | null = null;
   dragOverIdx: number | null = null;
 
@@ -97,6 +97,7 @@ export class DocumentationComponent implements AfterViewChecked {
   }
 
   // --- Drag & Drop ---
+
   onDragStart(event: DragEvent, idx: number): void {
     this.draggingIdx = idx;
     if (event.dataTransfer) {
@@ -110,7 +111,6 @@ export class DocumentationComponent implements AfterViewChecked {
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     const el = event.currentTarget as HTMLElement;
     const rect = el.getBoundingClientRect();
-    // Top half → insert before idx, bottom half → insert after idx
     this.dragOverIdx = event.clientY <= rect.top + rect.height / 2 ? idx : idx + 1;
   }
 
@@ -131,9 +131,7 @@ export class DocumentationComponent implements AfterViewChecked {
     if (this.draggingIdx !== null && this.dragOverIdx !== null) {
       const from = this.draggingIdx;
       const gap = this.dragOverIdx;
-      // Skip if gap is the block's current position or immediately after it
       if (gap !== from && gap !== from + 1) {
-        // Adjust for the index shift caused by removing the dragged element
         const actualTo = gap <= from ? gap : gap - 1;
         this.docService.moveBlock(this.docService.selectedDoc(), from, actualTo);
       }

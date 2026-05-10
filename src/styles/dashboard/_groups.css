@@ -309,6 +309,11 @@ app-groups {
   box-shadow: 0 0 12px rgba(124, 58, 237, 0.25);
 }
 
+.role-select option {
+  background-color: #130f24;
+  color: rgba(220, 210, 255, 0.9);
+}
+
 /* ─── Tab Users ──────────────────────────────────────────── */
 .users-tab-content {
   flex: 1;

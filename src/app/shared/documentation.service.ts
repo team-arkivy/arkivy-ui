@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, WritableSignal, Signal } from '@angular/core';
 
 export interface TocSection {
   category: string;
@@ -42,46 +42,64 @@ export class DocumentationService {
   selectedDoc = signal<string>('Tutorial_number_one');
   tocOpen = signal<boolean>(true);
 
-  private pages = new Map<string, DocPage>();
+  private readonly _pages = new Map<string, WritableSignal<DocPage>>();
+
+  private pageSignal(docName: string): WritableSignal<DocPage> {
+    if (!this._pages.has(docName)) {
+      this._pages.set(docName, signal({ title: '', blocks: [{ id: this.newId(), content: '' }] }));
+    }
+    return this._pages.get(docName)!;
+  }
 
   getPage(docName: string): DocPage {
-    if (!this.pages.has(docName)) {
-      this.pages.set(docName, { title: '', blocks: [{ id: this.newId(), content: '' }] });
-    }
-    return this.pages.get(docName)!;
+    return this.pageSignal(docName)();
+  }
+
+  getPageSignal(docName: string): Signal<DocPage> {
+    return this.pageSignal(docName).asReadonly();
   }
 
   updateTitle(docName: string, title: string): void {
-    const page = this.getPage(docName);
-    page.title = title;
+    this.pageSignal(docName).update(p => ({ ...p, title }));
   }
 
   updateBlock(docName: string, blockId: string, content: string): void {
-    const page = this.getPage(docName);
+    // Mutate in-place to avoid signal re-render during typing (preserves cursor position)
+    const page = this.pageSignal(docName)();
     const block = page.blocks.find(b => b.id === blockId);
     if (block) block.content = content;
   }
 
   insertBlockAfter(docName: string, blockId: string): string {
-    const page = this.getPage(docName);
-    const idx = page.blocks.findIndex(b => b.id === blockId);
     const newBlock: DocBlock = { id: this.newId(), content: '' };
-    page.blocks.splice(idx + 1, 0, newBlock);
+    this.pageSignal(docName).update(p => {
+      const idx = p.blocks.findIndex(b => b.id === blockId);
+      const blocks = [...p.blocks];
+      blocks.splice(idx + 1, 0, newBlock);
+      return { ...p, blocks };
+    });
     return newBlock.id;
   }
 
   deleteBlock(docName: string, blockId: string): string | null {
-    const page = this.getPage(docName);
+    const page = this.pageSignal(docName)();
     if (page.blocks.length <= 1) return null;
     const idx = page.blocks.findIndex(b => b.id === blockId);
-    page.blocks.splice(idx, 1);
-    return page.blocks[Math.max(0, idx - 1)].id;
+    const prevId = page.blocks[Math.max(0, idx - 1)].id;
+    this.pageSignal(docName).update(p => ({
+      ...p,
+      blocks: p.blocks.filter(b => b.id !== blockId),
+    }));
+    return prevId;
   }
 
   moveBlock(docName: string, fromIdx: number, toIdx: number): void {
-    const page = this.getPage(docName);
-    const [block] = page.blocks.splice(fromIdx, 1);
-    page.blocks.splice(toIdx, 0, block);
+    this.pageSignal(docName).update(p => {
+      const blocks = [...p.blocks];
+      const [block] = blocks.splice(fromIdx, 1);
+      blocks.splice(toIdx, 0, block);
+      return { ...p, blocks };
+    });
   }
 
   toggleToc(): void {

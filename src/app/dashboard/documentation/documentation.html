@@ -3,7 +3,7 @@
 
     <div class="notion-page">
 
-      <!-- Title (textarea para permitir wrap) -->
+      <!-- Title -->
       <textarea
         #titleRef
         class="notion-title"
@@ -23,7 +23,7 @@
             class="notion-block-row"
             [class.is-dragging]="draggingIdx === i"
             [class.drag-over]="dragOverIdx === i"
-            [attr.draggable]="true"
+            draggable="true"
             (dragstart)="onDragStart($event, i)"
             (dragover)="onDragOver($event, i)"
             (drop)="onDrop($event)"
@@ -42,6 +42,7 @@
               placeholder="Escribe algo..."
               (input)="onBlockInput($event, block.id)"
               (keydown)="onBlockKeydown($event, block)"
+              draggable="false"
             ></textarea>
           </div>
         }
