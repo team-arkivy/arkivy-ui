@@ -10,6 +10,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import {AuthService} from '../shared/auth.service';
 
 interface LoginCredentials {
   username: string;
@@ -54,6 +55,7 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private router: Router,
+    private authService: AuthService,
     @Inject(PLATFORM_ID) private platformId: object,
   ) {}
 
@@ -64,8 +66,8 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    cancelAnimationFrame(this.animFrameId);
     if (isPlatformBrowser(this.platformId)) {
+      cancelAnimationFrame(this.animFrameId);
       window.removeEventListener('resize', this.onResize);
     }
   }
@@ -83,6 +85,7 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
       this.isLoading = false;
       void this.router.navigate(['/dashboard']);
     }, 1800);
+    this.authService.login();
   }
 
   onForgotPassword(event: Event): void {
@@ -95,11 +98,11 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
   }
 
   loginWithGoogle(): void {
-    console.log('Login with Google');
+    this.authService.login();
   }
 
   loginWithGitHub(): void {
-    console.log('Login with GitHub');
+    this.authService.login();
   }
 
   private triggerShake(): void {

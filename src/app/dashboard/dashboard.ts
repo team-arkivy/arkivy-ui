@@ -4,6 +4,7 @@ import {
   AfterViewInit,
   ViewChild,
   ElementRef,
+  HostListener,
   Inject,
   PLATFORM_ID,
 } from '@angular/core';
@@ -11,6 +12,14 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { IconComponent } from '../shared/icon/icon.component';
 import { DocumentationService } from '../shared/documentation.service';
+import { AuthService } from '../shared/auth.service';
+
+interface UserClaims {
+  name?: string;
+  email?: string;
+  given_name?: string;
+  family_name?: string;
+}
 
 interface NetworkNode {
   x: number;
@@ -42,14 +51,50 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
   };
 
   sidebarOpen = true;
+  userMenuOpen = false;
 
   toggleSidebar(): void {
     this.sidebarOpen = !this.sidebarOpen;
   }
 
+  toggleUserMenu(event: MouseEvent): void {
+    event.stopPropagation();
+    this.userMenuOpen = !this.userMenuOpen;
+  }
+
+  @HostListener('document:click')
+  closeUserMenu(): void {
+    this.userMenuOpen = false;
+  }
+
+  get userClaims(): UserClaims {
+    return (this.authService.getUserInfo() as UserClaims) ?? {};
+  }
+
+  get userName(): string {
+    const c = this.userClaims;
+    if (c.name) return c.name;
+    const parts = [c.given_name, c.family_name].filter(Boolean);
+    return parts.length ? parts.join(' ') : 'User';
+  }
+
+  get userEmail(): string {
+    return this.userClaims.email ?? '';
+  }
+
+  get userInitials(): string {
+    return this.userName
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  }
+
   constructor(
     @Inject(PLATFORM_ID) private platformId: object,
     public docService: DocumentationService,
+    public authService: AuthService,
   ) {}
 
   ngAfterViewInit(): void {
