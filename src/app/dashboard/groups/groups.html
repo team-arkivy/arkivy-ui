@@ -41,41 +41,52 @@
 
       <div class="group-detail-header">
         <h1 class="group-title">{{ selectedGroup.name }}</h1>
-        <p class="group-members">{{ selectedGroup.memberCount }} members</p>
+        <p class="group-created">Created at: <span>{{ selectedGroup.createdAt }}</span></p>
       </div>
 
       <div class="tabs-bar">
-        <button class="tab-btn" [class.active]="activeTab === 'access'" (click)="setTab('access')">Access</button>
-        <button class="tab-btn" [class.active]="activeTab === 'users'"  (click)="setTab('users')">Users</button>
+        <button class="tab-btn" [class.active]="activeTab === 'files'" (click)="setTab('files')">Files</button>
+        <button class="tab-btn" [class.active]="activeTab === 'users'" (click)="setTab('users')">users</button>
       </div>
 
-      @if (activeTab === 'access') {
-        <div class="access-content">
-          <p class="access-description">This group has access to the following documentation</p>
-          <div class="access-list">
-            @for (category of selectedGroup.access; track category.name) {
-              <div class="access-category">
-                <div class="access-row category-row">
-                  <span class="access-name category-name">{{ category.name }}</span>
-                  <select class="role-select" [(ngModel)]="category.role">
-                    @for (role of roles; track role) {
-                      <option [value]="role">{{ role }}</option>
-                    }
-                  </select>
-                </div>
-                @for (doc of category.documents; track doc.name) {
-                  <div class="access-row doc-row">
-                    <span class="access-name doc-name">{{ doc.name }}</span>
-                    <select class="role-select" [(ngModel)]="doc.role">
-                      @for (role of roles; track role) {
-                        <option [value]="role">{{ role }}</option>
-                      }
-                    </select>
-                  </div>
-                }
-              </div>
-            }
+      @if (activeTab === 'files') {
+        <div class="files-content">
+
+          <div class="files-actions">
+            <button class="action-link" (click)="openAddFileModal()">+ Agregar Archivo</button>
+            <button class="action-link" (click)="openAddSpaceModal()">+ Agregar Espacio</button>
           </div>
+
+          <div class="files-table">
+            <div class="files-table-header">
+              <span class="th-col">
+                Name
+                <app-icon name="search" class="th-icon" />
+              </span>
+              <span class="th-col">
+                Space
+                <app-icon name="search" class="th-icon" />
+              </span>
+              <span class="th-col">
+                Access
+                <app-icon name="search" class="th-icon" />
+              </span>
+            </div>
+
+            <div class="files-table-body">
+              @for (file of selectedGroup.files; track file.name) {
+                <div class="files-table-row">
+                  <span class="td-name">{{ file.name }}</span>
+                  <span class="td-space">{{ file.space }}</span>
+                  <span class="td-access">{{ file.access }}</span>
+                </div>
+              }
+              @if (selectedGroup.files.length === 0) {
+                <p class="empty-state">No files added to this group yet.</p>
+              }
+            </div>
+          </div>
+
         </div>
       }
 
@@ -89,3 +100,66 @@
   }
 
 </div>
+
+<!-- ─── Modal: Agregar Archivo ────────────────────────────── -->
+@if (showAddFileModal) {
+  <div class="modal-backdrop" (click)="closeAddFileModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">Agregar archivo</h2>
+
+      <div class="modal-search-wrap">
+        <input
+          type="text"
+          placeholder="Search..."
+          [(ngModel)]="fileModalSearch"
+          class="modal-search-input"
+        />
+        <app-icon name="search" class="modal-search-icon" />
+      </div>
+
+      <div class="modal-list">
+        @for (file of filteredAvailableFiles; track file.name) {
+          <div class="modal-item" [class.selected]="file.selected" (click)="file.selected = !file.selected">
+            <div class="modal-item-info">
+              <span class="modal-item-name">{{ file.name }}</span>
+              <span class="modal-item-sub">Space: {{ file.space }}</span>
+            </div>
+            <div class="modal-checkbox" [class.checked]="file.selected"></div>
+          </div>
+        }
+      </div>
+
+      <button class="modal-add-btn" (click)="addSelectedFiles()">Agregar</button>
+    </div>
+  </div>
+}
+
+<!-- ─── Modal: Agregar Espacio ────────────────────────────── -->
+@if (showAddSpaceModal) {
+  <div class="modal-backdrop" (click)="closeAddSpaceModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">Agregar espacio</h2>
+
+      <div class="modal-search-wrap">
+        <input
+          type="text"
+          placeholder="Search..."
+          [(ngModel)]="spaceModalSearch"
+          class="modal-search-input"
+        />
+        <app-icon name="search" class="modal-search-icon" />
+      </div>
+
+      <div class="modal-list">
+        @for (space of filteredAvailableSpaces; track space.name) {
+          <div class="modal-item" [class.selected]="space.selected" (click)="space.selected = !space.selected">
+            <span class="modal-item-name">{{ space.name }}</span>
+            <div class="modal-checkbox" [class.checked]="space.selected"></div>
+          </div>
+        }
+      </div>
+
+      <button class="modal-add-btn" (click)="addSelectedSpaces()">Agregar</button>
+    </div>
+  </div>
+}

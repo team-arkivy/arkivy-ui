@@ -3,22 +3,29 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IconComponent } from '../../shared/icon/icon.component';
 
-interface DocPermission {
+interface GroupFile {
   name: string;
-  role: string;
+  space: string;
+  access: 'Lectura' | 'Edición';
 }
 
-interface DocCategory {
+interface AvailableFile {
   name: string;
-  role: string;
-  documents: DocPermission[];
+  space: string;
+  selected: boolean;
+}
+
+interface AvailableSpace {
+  name: string;
+  selected: boolean;
 }
 
 interface Group {
   id: string;
   name: string;
+  createdAt: string;
   memberCount: number;
-  access: DocCategory[];
+  files: GroupFile[];
 }
 
 @Component({
@@ -30,37 +37,54 @@ interface Group {
 })
 export class GroupsComponent {
   searchQuery = '';
-  activeTab: 'access' | 'users' = 'access';
-  roles = ['Viewer', 'Editor', 'Admin'];
+  activeTab: 'files' | 'users' = 'files';
+
+  showAddFileModal = false;
+  showAddSpaceModal = false;
+  fileModalSearch = '';
+  spaceModalSearch = '';
+
+  availableFiles: AvailableFile[] = [
+    { name: 'Archivo_1',              space: 'espacio_1',   selected: false },
+    { name: 'Archivo_2',              space: 'espacio_1',   selected: false },
+    { name: 'Tutorial_number_one',    space: 'Tutorial',    selected: false },
+    { name: 'How_to_guide_one',       space: 'How to guide',selected: false },
+    { name: 'Reference_number_one',   space: 'Reference',   selected: false },
+    { name: 'Explanation_number_one', space: 'Explanation', selected: false },
+  ];
+
+  availableSpaces: AvailableSpace[] = [
+    { name: 'espacio_1',   selected: false },
+    { name: 'Tutorial',    selected: false },
+    { name: 'How to guide',selected: false },
+    { name: 'Reference',   selected: false },
+    { name: 'Explanation', selected: false },
+  ];
 
   groups: Group[] = [
     {
-      id: '0', name: 'Example group name 0', memberCount: 0,
-      access: [
-        { name: 'Tutorial',    role: 'Editor', documents: [{ name: 'Tutorial_number_one',    role: 'Editor' }] },
-        { name: 'How to guide',role: 'Editor', documents: [{ name: 'How_to_guide_number_one',role: 'Editor' }] },
-        { name: 'Reference',   role: 'Editor', documents: [{ name: 'Reference_number_one',   role: 'Editor' }] },
-        { name: 'Explanation', role: 'Editor', documents: [{ name: 'Explanation_number_one', role: 'Editor' }] },
-        { name: 'Multiple',    role: 'Editor', documents: [{ name: 'Multiple_number_one',    role: 'Editor' }] },
+      id: '0', name: 'Reader group', createdAt: '12/10/2025', memberCount: 0,
+      files: [
+        { name: 'Explanation_number_one', space: 'Explanation', access: 'Lectura' },
+        { name: 'How_to_guide_one',       space: 'How to guide',access: 'Edición' },
       ],
     },
     {
-      id: '1', name: 'Example_group_name_1', memberCount: 3,
-      access: [
-        { name: 'Tutorial',  role: 'Viewer', documents: [{ name: 'Tutorial_number_one',  role: 'Viewer' }] },
-        { name: 'Reference', role: 'Viewer', documents: [{ name: 'Reference_number_one', role: 'Viewer' }] },
+      id: '1', name: 'Example_group_name_1', createdAt: '01/15/2025', memberCount: 3,
+      files: [
+        { name: 'Tutorial_number_one', space: 'Tutorial', access: 'Lectura' },
       ],
     },
     {
-      id: '2', name: 'Example_group_name_2', memberCount: 5,
-      access: [
-        { name: 'How to guide', role: 'Editor', documents: [{ name: 'How_to_guide_number_one', role: 'Editor' }] },
+      id: '2', name: 'Example_group_name_2', createdAt: '03/20/2025', memberCount: 5,
+      files: [
+        { name: 'How_to_guide_one', space: 'How to guide', access: 'Edición' },
       ],
     },
     {
-      id: '3', name: 'Example_group_name_3', memberCount: 2,
-      access: [
-        { name: 'Explanation', role: 'Admin', documents: [{ name: 'Explanation_number_one', role: 'Admin' }] },
+      id: '3', name: 'Example_group_name_3', createdAt: '06/05/2025', memberCount: 2,
+      files: [
+        { name: 'Explanation_number_one', space: 'Explanation', access: 'Lectura' },
       ],
     },
   ];
@@ -78,12 +102,70 @@ export class GroupsComponent {
     return this.groups.find((g) => g.id === this.selectedGroupId);
   }
 
-  selectGroup(group: Group): void {
-    this.selectedGroupId = group.id;
-    this.activeTab = 'access';
+  get filteredAvailableFiles(): AvailableFile[] {
+    if (!this.fileModalSearch.trim()) return this.availableFiles;
+    const q = this.fileModalSearch.toLowerCase();
+    return this.availableFiles.filter(f =>
+      f.name.toLowerCase().includes(q) || f.space.toLowerCase().includes(q),
+    );
   }
 
-  setTab(tab: 'access' | 'users'): void {
+  get filteredAvailableSpaces(): AvailableSpace[] {
+    if (!this.spaceModalSearch.trim()) return this.availableSpaces;
+    const q = this.spaceModalSearch.toLowerCase();
+    return this.availableSpaces.filter(s => s.name.toLowerCase().includes(q));
+  }
+
+  selectGroup(group: Group): void {
+    this.selectedGroupId = group.id;
+    this.activeTab = 'files';
+  }
+
+  setTab(tab: 'files' | 'users'): void {
     this.activeTab = tab;
+  }
+
+  openAddFileModal(): void {
+    this.availableFiles.forEach(f => (f.selected = false));
+    this.fileModalSearch = '';
+    this.showAddFileModal = true;
+  }
+
+  closeAddFileModal(): void {
+    this.showAddFileModal = false;
+  }
+
+  addSelectedFiles(): void {
+    const group = this.selectedGroup;
+    if (!group) return;
+    for (const file of this.availableFiles.filter(f => f.selected)) {
+      if (!group.files.find(f => f.name === file.name)) {
+        group.files.push({ name: file.name, space: file.space, access: 'Lectura' });
+      }
+    }
+    this.showAddFileModal = false;
+  }
+
+  openAddSpaceModal(): void {
+    this.availableSpaces.forEach(s => (s.selected = false));
+    this.spaceModalSearch = '';
+    this.showAddSpaceModal = true;
+  }
+
+  closeAddSpaceModal(): void {
+    this.showAddSpaceModal = false;
+  }
+
+  addSelectedSpaces(): void {
+    const group = this.selectedGroup;
+    if (!group) return;
+    for (const space of this.availableSpaces.filter(s => s.selected)) {
+      for (const file of this.availableFiles.filter(f => f.space === space.name)) {
+        if (!group.files.find(f => f.name === file.name)) {
+          group.files.push({ name: file.name, space: file.space, access: 'Lectura' });
+        }
+      }
+    }
+    this.showAddSpaceModal = false;
   }
 }
