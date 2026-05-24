@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
-import {authGuard} from './shared/auth.guard';
+import {authGuard} from './shared/guards/auth.guard';
+import {roleGuard} from './shared/guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -34,6 +35,7 @@ export const routes: Routes = [
       },
       {
         path: 'users',
+        canActivate: [roleGuard('sys-admin', 'plat-admin')],
         loadComponent: () =>
           import('./dashboard/users/users').then((m) => m.UsersComponent),
       },
