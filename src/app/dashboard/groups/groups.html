@@ -1,165 +1,559 @@
 <div class="groups-layout">
 
-  <!-- ─── Panel izquierdo: Lista de grupos ─────────────────── -->
-  <aside class="groups-list-panel">
+  <!-- ══════════════════════════════════════════════════════════
+       PANEL IZQUIERDO — Lista de grupos
+       ══════════════════════════════════════════════════════════ -->
+  <aside class="groups-panel">
 
-    <div class="groups-breadcrumb">
-      <span class="breadcrumb-dot"></span>
-      <span class="breadcrumb-base">Groups</span>
-      @if (selectedGroup) {
-        <span class="breadcrumb-sep">/</span>
-        <span class="breadcrumb-current">{{ selectedGroup.name }}</span>
+    <div class="panel-header">
+      <h2 class="panel-heading">Grupos</h2>
+      <button class="panel-new-btn" title="Crear nuevo grupo" (click)="openCreateGroupModal()">
+        <app-icon name="plus" />
+      </button>
+    </div>
+
+    <div class="panel-search-wrap">
+      <app-icon name="search" class="panel-search-icon" />
+      <input type="text" placeholder="Buscar grupo..." [(ngModel)]="searchQuery" class="panel-search-input" />
+    </div>
+
+    <div class="panel-list">
+      @if (filteredGroups.length === 0) {
+        <p class="panel-empty">Sin resultados</p>
       }
-    </div>
-
-    <div class="groups-search-wrap">
-      <app-icon name="search" class="search-icon" />
-      <input
-        type="text"
-        placeholder="Search groups..."
-        [(ngModel)]="searchQuery"
-        class="groups-search-input"
-      />
-    </div>
-
-    <div class="groups-list">
       @for (group of filteredGroups; track group.id) {
-        <button
-          class="group-list-item"
-          [class.selected]="group.id === selectedGroupId"
-          (click)="selectGroup(group)">
-          {{ group.name }}
+        <button class="group-item" [class.active]="group.id === selectedGroupId" (click)="selectGroup(group)">
+          <div class="group-item-icon"><app-icon name="users" /></div>
+          <div class="group-item-body">
+            <span class="group-item-name">{{ group.name }}</span>
+            <span class="group-item-meta">
+              {{ group.members.length }} miembro{{ group.members.length !== 1 ? 's' : '' }}
+              · {{ group.spaces.length + group.files.length }} recursos
+            </span>
+          </div>
         </button>
       }
     </div>
 
   </aside>
 
-  <!-- ─── Panel derecho: Detalle del grupo ─────────────────── -->
-  @if (selectedGroup) {
-    <div class="group-detail">
+  <!-- ══════════════════════════════════════════════════════════
+       PANEL DERECHO — Detalle del grupo
+       ══════════════════════════════════════════════════════════ -->
+  @if (selectedGroup; as group) {
+    <main class="group-detail">
 
-      <div class="group-detail-header">
-        <h1 class="group-title">{{ selectedGroup.name }}</h1>
-        <p class="group-created">Created at: <span>{{ selectedGroup.createdAt }}</span></p>
-      </div>
+      <!-- Columna principal: header + tabs + contenido -->
+      <div class="detail-main">
 
-      <div class="tabs-bar">
-        <button class="tab-btn" [class.active]="activeTab === 'files'" (click)="setTab('files')">Files</button>
-        <button class="tab-btn" [class.active]="activeTab === 'users'" (click)="setTab('users')">users</button>
-      </div>
-
-      @if (activeTab === 'files') {
-        <div class="files-content">
-
-          <div class="files-actions">
-            <button class="action-link" (click)="openAddFileModal()">+ Agregar Archivo</button>
-            <button class="action-link" (click)="openAddSpaceModal()">+ Agregar Espacio</button>
+        <div class="detail-header">
+          <div class="detail-header-info">
+            <h1 class="detail-title">{{ group.name }}</h1>
+            <p class="detail-meta">Creado el {{ group.createdAt }}</p>
           </div>
+          <div class="detail-stats">
+            <div class="stat-chip"><app-icon name="folder" class="stat-icon" /><span>{{ group.spaces.length }} espacios</span></div>
+            <div class="stat-chip"><app-icon name="doc"    class="stat-icon" /><span>{{ group.files.length }} archivos</span></div>
+            <div class="stat-chip"><app-icon name="users"  class="stat-icon" /><span>{{ group.members.length }} miembros</span></div>
+          </div>
+        </div>
 
-          <div class="files-table">
-            <div class="files-table-header">
-              <span class="th-col">
-                Name
-                <app-icon name="search" class="th-icon" />
-              </span>
-              <span class="th-col">
-                Space
-                <app-icon name="search" class="th-icon" />
-              </span>
-              <span class="th-col">
-                Access
-                <app-icon name="search" class="th-icon" />
-              </span>
-            </div>
+        <div class="detail-tabs">
+          <button class="detail-tab" [class.active]="activeTab === 'content'" (click)="setTab('content')">Contenido</button>
+          <button class="detail-tab" [class.active]="activeTab === 'members'" (click)="setTab('members')">
+            Miembros
+            @if (group.members.length > 0) { <span class="tab-badge">{{ group.members.length }}</span> }
+          </button>
+        </div>
 
-            <div class="files-table-body">
-              @for (file of selectedGroup.files; track file.name) {
-                <div class="files-table-row">
-                  <span class="td-name">{{ file.name }}</span>
-                  <span class="td-space">{{ file.space }}</span>
-                  <span class="td-access">{{ file.access }}</span>
+        <!-- ──────────────────────────────────────────────────────
+             PESTAÑA CONTENIDO — Dos columnas: Espacios + Archivos
+             ────────────────────────────────────────────────────── -->
+        @if (activeTab === 'content') {
+          <div class="tab-body tab-body--split" [class.spaces-expanded]="spacesExpanded">
+
+            <!-- Columna 1: Espacios de trabajo -->
+            <section class="content-section spaces-section">
+              <div class="section-hd">
+                <div class="section-hd-left">
+                  <app-icon name="folder" class="section-icon" />
+                  <span class="section-label">Espacios de trabajo</span>
+                  <span class="section-count">{{ group.spaces.length }}</span>
+                </div>
+                <div class="section-hd-right">
+                  <button class="add-btn" (click)="openAddSpaceModal()">
+                    <app-icon name="plus" class="add-btn-icon" />Agregar
+                  </button>
+                  <button
+                    class="icon-btn-sm"
+                    [title]="spacesExpanded ? 'Ver columna de archivos' : 'Expandir espacios'"
+                    (click)="toggleSpacesExpanded()"
+                  >
+                    <app-icon [name]="spacesExpanded ? 'minimize' : 'maximize'" />
+                  </button>
+                </div>
+              </div>
+
+              @if (group.spaces.length === 0) {
+                <div class="section-empty">
+                  <app-icon name="folder" class="section-empty-icon" />
+                  <p>No hay espacios asignados.</p>
+                  <p class="section-empty-hint">Agrega un espacio para dar acceso a todos sus documentos.</p>
+                </div>
+              } @else {
+                <div class="item-list">
+                  @for (space of group.spaces; track space.id) {
+                    <!-- Fila de espacio: clic abre el panel contextual -->
+                    <div
+                      class="item-row"
+                      [class.ctx-active]="activeSpace === space"
+                      (click)="openSpaceView(space, $event)"
+                    >
+                      <div class="item-icon folder-clr"><app-icon name="folder" /></div>
+
+                      <!-- Nombre: modo edición o modo lectura -->
+                      @if (editingSpaceId === space.id) {
+                        <input
+                          class="inline-edit-input"
+                          [(ngModel)]="editValue"
+                          (keydown.enter)="saveSpaceName(space)"
+                          (keydown.escape)="cancelEdit()"
+                          (blur)="saveSpaceName(space)"
+                          (click)="$event.stopPropagation()"
+                        />
+                      } @else {
+                        <div class="item-info">
+                          <span class="item-name">{{ space.name }}</span>
+                          <span class="item-sub">{{ getFilesInSpace(space.name).length }} documentos</span>
+                        </div>
+                      }
+
+                      <!-- Control de acceso (siempre visible) -->
+                      <div class="role-toggle" (click)="$event.stopPropagation()">
+                        <button class="role-btn" [class.active]="space.access === 'Reader'" (click)="changeSpaceAccess(space, 'Reader', $event)">Lector</button>
+                        <button class="role-btn" [class.active]="space.access === 'Editor'" (click)="changeSpaceAccess(space, 'Editor', $event)">Editor</button>
+                      </div>
+
+                      <!-- Acciones (visibles al hover) -->
+                      <div class="row-hover-actions">
+                        <button class="row-action-btn" title="Editar nombre" (click)="startEditSpace(space, $event)">
+                          <app-icon name="edit" />
+                        </button>
+                        <button class="row-action-btn danger" title="Quitar espacio" (click)="removeSpace(group, space, $event)">
+                          <app-icon name="close" />
+                        </button>
+                      </div>
+                    </div>
+                  }
                 </div>
               }
-              @if (selectedGroup.files.length === 0) {
-                <p class="empty-state">No files added to this group yet.</p>
+            </section>
+
+            <!-- Columna 2: Archivos individuales -->
+            <section class="content-section files-section">
+              <div class="section-hd">
+                <div class="section-hd-left">
+                  <app-icon name="doc" class="section-icon" />
+                  <span class="section-label">Archivos individuales</span>
+                  <span class="section-count">{{ group.files.length }}</span>
+                </div>
+                <div class="section-hd-right">
+                  <button class="add-btn" (click)="openAddFileModal()">
+                    <app-icon name="plus" class="add-btn-icon" />Agregar
+                  </button>
+                </div>
+              </div>
+
+              @if (group.files.length === 0) {
+                <div class="section-empty">
+                  <app-icon name="doc" class="section-empty-icon" />
+                  <p>No hay archivos individuales.</p>
+                  <p class="section-empty-hint">Agrega archivos sueltos sin necesidad de un espacio completo.</p>
+                </div>
+              } @else {
+                <div class="item-list">
+                  @for (file of group.files; track file.id) {
+                    <!-- Fila de archivo: clic abre la previsualización -->
+                    <div
+                      class="item-row"
+                      [class.ctx-active]="activeFile === file"
+                      (click)="openFileView(file, $event)"
+                    >
+                      <div class="item-icon doc-clr"><app-icon name="doc" /></div>
+
+                      <!-- Nombre: modo edición o modo lectura -->
+                      @if (editingFileId === file.id) {
+                        <input
+                          class="inline-edit-input"
+                          [(ngModel)]="editValue"
+                          (keydown.enter)="saveFileName(file)"
+                          (keydown.escape)="cancelEdit()"
+                          (blur)="saveFileName(file)"
+                          (click)="$event.stopPropagation()"
+                        />
+                      } @else {
+                        <div class="item-info">
+                          <span class="item-name">{{ file.name }}</span>
+                          @if (file.space) { <span class="item-sub">en {{ file.space }}</span> }
+                          @else { <span class="item-sub loose">Sin espacio</span> }
+                        </div>
+                      }
+
+                      <!-- Control de acceso (siempre visible) -->
+                      <div class="role-toggle" (click)="$event.stopPropagation()">
+                        <button class="role-btn" [class.active]="file.access === 'Reader'" (click)="changeFileAccess(file, 'Reader', $event)">Lector</button>
+                        <button class="role-btn" [class.active]="file.access === 'Editor'" (click)="changeFileAccess(file, 'Editor', $event)">Editor</button>
+                      </div>
+
+                      <!-- Acciones (visibles al hover) -->
+                      <div class="row-hover-actions">
+                        <button class="row-action-btn" title="Editar nombre" (click)="startEditFile(file, $event)">
+                          <app-icon name="edit" />
+                        </button>
+
+                        <!-- Mover a espacio -->
+                        <div class="move-wrap" (click)="$event.stopPropagation()">
+                          <button
+                            class="row-action-btn"
+                            [class.active]="movingFileId === file.id"
+                            title="Mover a espacio"
+                            (click)="toggleMoveMenu(file.id, $event)"
+                          >
+                            <app-icon name="arrow-right" />
+                          </button>
+                          @if (movingFileId === file.id) {
+                            <div class="move-menu">
+                              <p class="move-menu-label">Mover a espacio</p>
+                              @if (group.spaces.length === 0) {
+                                <p class="move-menu-empty">Este grupo no tiene espacios.</p>
+                              }
+                              @for (space of group.spaces; track space.id) {
+                                <button class="move-menu-item" (click)="moveFileToSpace(file, space.name)">
+                                  <app-icon name="folder" class="move-menu-icon" />
+                                  {{ space.name }}
+                                </button>
+                              }
+                            </div>
+                          }
+                        </div>
+
+                        <button class="row-action-btn danger" title="Quitar archivo" (click)="removeFile(group, file, $event)">
+                          <app-icon name="close" />
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </section>
+
+          </div>
+        }
+
+        <!-- ──────────────────────────────────────────────────────
+             PESTAÑA MIEMBROS
+             ────────────────────────────────────────────────────── -->
+        @if (activeTab === 'members') {
+          <div class="tab-body">
+            <section class="content-section">
+              <div class="section-hd">
+                <div class="section-hd-left">
+                  <app-icon name="users" class="section-icon" />
+                  <span class="section-label">Miembros del grupo</span>
+                  <span class="section-count">{{ group.members.length }}</span>
+                </div>
+                <div class="section-hd-right">
+                  <button class="add-btn" (click)="openAddMemberModal()">
+                    <app-icon name="plus" class="add-btn-icon" />Agregar
+                  </button>
+                </div>
+              </div>
+
+              @if (group.members.length === 0) {
+                <div class="section-empty">
+                  <app-icon name="users" class="section-empty-icon" />
+                  <p>Este grupo no tiene miembros.</p>
+                  <p class="section-empty-hint">Agrega usuarios y asígnales un rol de acceso.</p>
+                </div>
+              } @else {
+                <div class="item-list">
+                  @for (member of group.members; track member.id) {
+                    <div class="item-row">
+                      <div class="member-avatar">{{ getInitials(member.name) }}</div>
+                      <div class="item-info">
+                        <span class="item-name">{{ member.name }}</span>
+                        <span class="item-sub">{{ member.email }}</span>
+                      </div>
+                      <div class="role-toggle">
+                        <button class="role-btn" [class.active]="member.role === 'Reader'" (click)="changeMemberRole(member, 'Reader')">Lector</button>
+                        <button class="role-btn" [class.active]="member.role === 'Editor'" (click)="changeMemberRole(member, 'Editor')">Editor</button>
+                      </div>
+                      <div class="row-hover-actions">
+                        <button class="row-action-btn danger" title="Quitar miembro" (click)="removeMember(group, member)">
+                          <app-icon name="close" />
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </section>
+          </div>
+        }
+
+      </div><!-- /detail-main -->
+
+      <!-- ══════════════════════════════════════════════════════
+           PANEL CONTEXTUAL — Detalle de espacio o previsualización
+           ══════════════════════════════════════════════════════ -->
+      @if (contextView) {
+        <aside class="context-panel">
+
+          <!-- ── DETALLE DE ESPACIO ─────────────────────────── -->
+          @if (contextView.type === 'space') {
+            <div class="ctx-header">
+              <div class="ctx-header-icon folder-clr"><app-icon name="folder" /></div>
+              <div class="ctx-header-info">
+                <h2 class="ctx-title">{{ contextView.space.name }}</h2>
+                <p class="ctx-meta">Espacio de trabajo · {{ getFilesInSpace(contextView.space.name).length }} documentos</p>
+              </div>
+              <button class="ctx-close-btn" title="Cerrar" (click)="closeContextPanel()">
+                <app-icon name="close" />
+              </button>
+            </div>
+
+            <div class="ctx-body">
+              <p class="ctx-section-label">Documentos en este espacio</p>
+              @if (getFilesInSpace(contextView.space.name).length === 0) {
+                <p class="ctx-empty">No hay documentos en este espacio.</p>
+              } @else {
+                <div class="ctx-file-list">
+                  @for (file of getFilesInSpace(contextView.space.name); track file.id) {
+                    <div class="ctx-file-row" (click)="openFileView(file, $event)">
+                      <div class="ctx-file-icon doc-clr"><app-icon name="doc" /></div>
+                      <span class="ctx-file-name">{{ file.name }}</span>
+                      <app-icon name="chevron-right" class="ctx-arrow" />
+                    </div>
+                  }
+                </div>
               }
             </div>
-          </div>
+          }
 
-        </div>
+          <!-- ── PREVISUALIZACIÓN DE ARCHIVO ────────────────── -->
+          @if (contextView.type === 'file') {
+            <div class="ctx-header">
+              <div class="ctx-header-icon doc-clr"><app-icon name="doc" /></div>
+              <div class="ctx-header-info">
+                <h2 class="ctx-title">{{ contextView.file.name }}</h2>
+                <p class="ctx-meta">
+                  @if (contextView.file.space) { en {{ contextView.file.space }} }
+                  @else { Archivo sin espacio }
+                </p>
+              </div>
+              <button class="ctx-close-btn" title="Cerrar" (click)="closeContextPanel()">
+                <app-icon name="close" />
+              </button>
+            </div>
+
+            <div class="ctx-body ctx-preview">
+              <div class="preview-doc">
+                <h3 class="preview-doc-title">{{ contextView.file.name }}</h3>
+
+                <div class="preview-block">
+                  <p>Este documento forma parte de la base de conocimiento del sistema. Contiene guías, procedimientos y referencias relevantes para el equipo.</p>
+                </div>
+
+                <h4 class="preview-block-heading">Introducción</h4>
+                <div class="preview-block">
+                  <p>El objetivo de este documento es proporcionar una guía clara para todos los usuarios, independientemente de su nivel de experiencia técnica.</p>
+                </div>
+
+                <h4 class="preview-block-heading">Contenido principal</h4>
+                <div class="preview-block">
+                  <p>A continuación se detallan los puntos clave que debes conocer para utilizar correctamente este recurso dentro de tu flujo de trabajo habitual.</p>
+                </div>
+
+                <div class="preview-block">
+                  <p>Para más información, consulta con el administrador del espacio o revisa los documentos relacionados en el mismo espacio de trabajo.</p>
+                </div>
+              </div>
+            </div>
+          }
+
+        </aside>
       }
 
-      @if (activeTab === 'users') {
-        <div class="users-tab-content">
-          <p class="empty-state">No users in this group yet.</p>
-        </div>
-      }
+    </main>
 
+  } @else {
+    <!-- Estado vacío: ningún grupo seleccionado -->
+    <div class="detail-placeholder">
+      <app-icon name="users" class="placeholder-icon" />
+      <p class="placeholder-text">Selecciona un grupo para ver sus detalles</p>
+      <button class="add-btn" (click)="openCreateGroupModal()">
+        <app-icon name="plus" class="add-btn-icon" />Crear primer grupo
+      </button>
     </div>
   }
 
 </div>
 
-<!-- ─── Modal: Agregar Archivo ────────────────────────────── -->
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL — Crear grupo
+     ══════════════════════════════════════════════════════════════ -->
+@if (showCreateGroupModal) {
+  <div class="modal-backdrop" (click)="closeCreateGroupModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">Nuevo grupo</h2>
+      <p class="modal-desc">Los grupos organizan el acceso a espacios y documentos para un conjunto de usuarios.</p>
+      <div class="modal-field">
+        <label class="modal-label">Nombre del grupo</label>
+        <input type="text" class="modal-input" placeholder="Ej: Equipo de marketing"
+          [(ngModel)]="newGroupName" (keydown.enter)="confirmCreateGroup()" autofocus />
+      </div>
+      <div class="modal-actions">
+        <button class="modal-cancel-btn" (click)="closeCreateGroupModal()">Cancelar</button>
+        <button class="modal-confirm-btn" [disabled]="!newGroupName.trim()" (click)="confirmCreateGroup()">Crear grupo</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL — Agregar espacio
+     ══════════════════════════════════════════════════════════════ -->
+@if (showAddSpaceModal) {
+  <div class="modal-backdrop" (click)="closeAddSpaceModal()">
+    <div class="modal-card modal-card--lg" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">Agregar espacios</h2>
+      <p class="modal-desc">El grupo tendrá acceso a todos los documentos del espacio seleccionado.</p>
+      <div class="modal-search-wrap">
+        <app-icon name="search" class="modal-search-icon" />
+        <input type="text" class="modal-search-input" placeholder="Buscar espacio..." [(ngModel)]="addSpaceSearch" />
+      </div>
+      <div class="modal-list">
+        @if (filteredAvailableSpaces.length === 0) {
+          <p class="modal-empty">Todos los espacios ya están asignados.</p>
+        }
+        @for (space of filteredAvailableSpaces; track space.id) {
+          <div class="modal-item" [class.selected]="space.selected" (click)="space.selected = !space.selected">
+            <div class="modal-item-icon folder-clr"><app-icon name="folder" /></div>
+            <div class="modal-item-info">
+              <span class="modal-item-name">{{ space.name }}</span>
+              <span class="modal-item-sub">{{ space.fileCount }} documentos</span>
+            </div>
+            <div class="modal-checkbox" [class.checked]="space.selected"></div>
+          </div>
+        }
+      </div>
+      <div class="modal-footer">
+        <div class="modal-role-row">
+          <span class="modal-role-label">Acceso:</span>
+          <div class="role-toggle">
+            <button class="role-btn" [class.active]="pendingSpaceAccess === 'Reader'" (click)="pendingSpaceAccess = 'Reader'">Lector</button>
+            <button class="role-btn" [class.active]="pendingSpaceAccess === 'Editor'" (click)="pendingSpaceAccess = 'Editor'">Editor</button>
+          </div>
+        </div>
+        <div class="modal-btn-row">
+          <button class="modal-cancel-btn" (click)="closeAddSpaceModal()">Cancelar</button>
+          <button class="modal-confirm-btn" [disabled]="countSelected(allSpaces) === 0" (click)="confirmAddSpaces()">
+            Agregar{{ countSelected(allSpaces) > 0 ? ' (' + countSelected(allSpaces) + ')' : '' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL — Agregar archivo
+     ══════════════════════════════════════════════════════════════ -->
 @if (showAddFileModal) {
   <div class="modal-backdrop" (click)="closeAddFileModal()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <h2 class="modal-title">Agregar archivo</h2>
-
+    <div class="modal-card modal-card--lg" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">Agregar archivos</h2>
+      <p class="modal-desc">Selecciona archivos individuales para asignarlos directamente a este grupo.</p>
       <div class="modal-search-wrap">
-        <input
-          type="text"
-          placeholder="Search..."
-          [(ngModel)]="fileModalSearch"
-          class="modal-search-input"
-        />
         <app-icon name="search" class="modal-search-icon" />
+        <input type="text" class="modal-search-input" placeholder="Buscar por nombre o espacio..." [(ngModel)]="addFileSearch" />
       </div>
-
       <div class="modal-list">
-        @for (file of filteredAvailableFiles; track file.name) {
+        @if (filteredAvailableFiles.length === 0) {
+          <p class="modal-empty">Todos los archivos ya están en este grupo.</p>
+        }
+        @for (file of filteredAvailableFiles; track file.id) {
           <div class="modal-item" [class.selected]="file.selected" (click)="file.selected = !file.selected">
+            <div class="modal-item-icon doc-clr"><app-icon name="doc" /></div>
             <div class="modal-item-info">
               <span class="modal-item-name">{{ file.name }}</span>
-              <span class="modal-item-sub">Space: {{ file.space }}</span>
+              <span class="modal-item-sub">{{ file.space ?? 'Sin espacio' }}</span>
             </div>
             <div class="modal-checkbox" [class.checked]="file.selected"></div>
           </div>
         }
       </div>
-
-      <button class="modal-add-btn" (click)="addSelectedFiles()">Agregar</button>
+      <div class="modal-footer">
+        <div class="modal-role-row">
+          <span class="modal-role-label">Acceso:</span>
+          <div class="role-toggle">
+            <button class="role-btn" [class.active]="pendingFileAccess === 'Reader'" (click)="pendingFileAccess = 'Reader'">Lector</button>
+            <button class="role-btn" [class.active]="pendingFileAccess === 'Editor'" (click)="pendingFileAccess = 'Editor'">Editor</button>
+          </div>
+        </div>
+        <div class="modal-btn-row">
+          <button class="modal-cancel-btn" (click)="closeAddFileModal()">Cancelar</button>
+          <button class="modal-confirm-btn" [disabled]="countSelected(allFiles) === 0" (click)="confirmAddFiles()">
+            Agregar{{ countSelected(allFiles) > 0 ? ' (' + countSelected(allFiles) + ')' : '' }}
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 }
 
-<!-- ─── Modal: Agregar Espacio ────────────────────────────── -->
-@if (showAddSpaceModal) {
-  <div class="modal-backdrop" (click)="closeAddSpaceModal()">
-    <div class="modal-card" (click)="$event.stopPropagation()">
-      <h2 class="modal-title">Agregar espacio</h2>
-
+<!-- ══════════════════════════════════════════════════════════════
+     MODAL — Agregar miembro
+     ══════════════════════════════════════════════════════════════ -->
+@if (showAddMemberModal) {
+  <div class="modal-backdrop" (click)="closeAddMemberModal()">
+    <div class="modal-card modal-card--lg" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">Agregar miembros</h2>
+      <p class="modal-desc">Selecciona usuarios registrados y asígnales un rol de acceso.</p>
       <div class="modal-search-wrap">
-        <input
-          type="text"
-          placeholder="Search..."
-          [(ngModel)]="spaceModalSearch"
-          class="modal-search-input"
-        />
         <app-icon name="search" class="modal-search-icon" />
+        <input type="text" class="modal-search-input" placeholder="Buscar por nombre o correo..." [(ngModel)]="addMemberSearch" />
       </div>
-
       <div class="modal-list">
-        @for (space of filteredAvailableSpaces; track space.name) {
-          <div class="modal-item" [class.selected]="space.selected" (click)="space.selected = !space.selected">
-            <span class="modal-item-name">{{ space.name }}</span>
-            <div class="modal-checkbox" [class.checked]="space.selected"></div>
+        @if (filteredAvailableUsers.length === 0) {
+          <p class="modal-empty">Todos los usuarios ya son miembros.</p>
+        }
+        @for (user of filteredAvailableUsers; track user.id) {
+          <div class="modal-item" [class.selected]="user.selected" (click)="user.selected = !user.selected">
+            <div class="member-avatar member-avatar--sm">{{ getInitials(user.name) }}</div>
+            <div class="modal-item-info">
+              <span class="modal-item-name">{{ user.name }}</span>
+              <span class="modal-item-sub">{{ user.email }}</span>
+            </div>
+            <div class="modal-checkbox" [class.checked]="user.selected"></div>
           </div>
         }
       </div>
-
-      <button class="modal-add-btn" (click)="addSelectedSpaces()">Agregar</button>
+      <div class="modal-footer">
+        <div class="modal-role-row">
+          <span class="modal-role-label">Rol:</span>
+          <div class="role-toggle">
+            <button class="role-btn" [class.active]="pendingMemberRole === 'Reader'" (click)="pendingMemberRole = 'Reader'">Lector</button>
+            <button class="role-btn" [class.active]="pendingMemberRole === 'Editor'" (click)="pendingMemberRole = 'Editor'">Editor</button>
+          </div>
+        </div>
+        <div class="modal-btn-row">
+          <button class="modal-cancel-btn" (click)="closeAddMemberModal()">Cancelar</button>
+          <button class="modal-confirm-btn" [disabled]="countSelected(allUsers) === 0" (click)="confirmAddMembers()">
+            Agregar{{ countSelected(allUsers) > 0 ? ' (' + countSelected(allUsers) + ')' : '' }}
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 }
