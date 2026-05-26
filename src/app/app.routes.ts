@@ -44,6 +44,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./dashboard/groups/groups').then((m) => m.GroupsComponent),
       },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./dashboard/settings/settings').then((m) => m.SettingsComponent),
+      },
     ],
   },
   {

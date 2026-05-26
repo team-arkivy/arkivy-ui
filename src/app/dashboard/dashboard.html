@@ -64,6 +64,10 @@
         <app-icon name="users" class="nav-icon" />
         <span>Groups</span>
       </a>
+      <a routerLink="/dashboard/settings" routerLinkActive="active" class="nav-item">
+        <app-icon name="settings" class="nav-icon" />
+        <span>Settings</span>
+      </a>
     </nav>
 
     <div class="sidebar-footer">
@@ -103,7 +107,7 @@
                 </div>
               </div>
               <div class="user-menu-divider"></div>
-              <button class="user-menu-item">
+              <button class="user-menu-item" (click)="goToSettings()">
                 <app-icon name="settings" class="user-menu-icon" />
                 <span>Settings</span>
               </button>

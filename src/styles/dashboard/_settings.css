@@ -1,0 +1,327 @@
+/* ================================================================
+   Dashboard – Página Settings / Perfil
+   ================================================================ */
+
+app-settings {
+  display: flex;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.settings-layout {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 32px 24px 48px;
+  overflow-y: auto;
+}
+
+.settings-container {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Cabecera de perfil ──────────────────────────────────────── */
+
+.settings-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 24px;
+  background: rgba(18, 15, 35, 0.72);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(139, 92, 246, 0.22);
+  border-radius: 14px 14px 0 0;
+  border-bottom: none;
+}
+
+.settings-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed 0%, #22d3ee 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.28), 0 4px 18px rgba(124, 58, 237, 0.35);
+}
+
+.settings-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.settings-fullname {
+  font-family: var(--font-ui);
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--dash-text);
+  letter-spacing: 0.01em;
+}
+
+.settings-email-dim {
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--dash-text-dim);
+}
+
+/* ─── Tabs ────────────────────────────────────────────────────── */
+
+.settings-tabs {
+  display: flex;
+  background: rgba(12, 10, 26, 0.55);
+  border-left: 1px solid rgba(139, 92, 246, 0.22);
+  border-right: 1px solid rgba(139, 92, 246, 0.22);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.14);
+  padding: 0 16px;
+  gap: 2px;
+}
+
+.settings-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--dash-text-dim);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+  margin-bottom: -1px;
+  letter-spacing: 0.01em;
+}
+
+.settings-tab app-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.settings-tab:hover { color: var(--dash-text); }
+
+.settings-tab.active {
+  color: #a78bfa;
+  border-bottom-color: #7c3aed;
+}
+
+/* ─── Panel de contenido ─────────────────────────────────────── */
+
+.settings-panel {
+  background: rgba(18, 15, 35, 0.68);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(139, 92, 246, 0.22);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  padding: 24px 24px 28px;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-section-title {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(167, 139, 250, 0.5);
+  margin-bottom: 14px;
+}
+
+/* ─── Layout de fila (dos columnas) ─────────────────────────── */
+
+.settings-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ─── Overrides para inputs dentro de settings ──────────────── */
+
+.settings-panel .field-group {
+  margin-bottom: 12px;
+}
+
+.settings-panel label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: rgba(200, 190, 255, 0.65);
+  letter-spacing: 0.04em;
+  text-shadow: none;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.settings-panel input {
+  padding: 8px 12px 8px 36px;
+  font-size: 0.83rem;
+  background: rgba(10, 8, 22, 0.5);
+  border-color: rgba(139, 92, 246, 0.22);
+}
+
+.settings-panel .input-icon {
+  width: 14px;
+  height: 14px;
+  left: 11px;
+}
+
+.settings-panel input.input-readonly {
+  color: var(--dash-text-dim);
+  cursor: not-allowed;
+  background: rgba(10, 8, 22, 0.3);
+  border-color: rgba(139, 92, 246, 0.12);
+}
+
+.settings-panel input.input-readonly:focus {
+  border-color: rgba(139, 92, 246, 0.12);
+  box-shadow: none;
+}
+
+.field-hint {
+  font-size: 0.68rem;
+  color: rgba(139, 92, 246, 0.45);
+  padding-left: 2px;
+  margin-top: 5px;
+  display: block;
+  font-family: var(--font-ui);
+}
+
+/* ─── Acciones ───────────────────────────────────────────────── */
+
+.settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.btn-save {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  background: rgba(109, 69, 212, 0.28);
+  color: #d4c8ff;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), color var(--transition);
+}
+
+.btn-save:hover {
+  background: rgba(124, 58, 237, 0.48);
+  border-color: rgba(139, 92, 246, 0.65);
+  box-shadow: 0 0 14px rgba(124, 58, 237, 0.28);
+  color: #ede8ff;
+}
+
+.btn-save:active {
+  transform: scale(0.97);
+}
+
+.save-feedback {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: #4ade80;
+  animation: fadeIn 0.2s ease;
+}
+
+.save-check {
+  width: 13px;
+  height: 13px;
+  color: #4ade80;
+}
+
+/* ─── Selector de idioma ─────────────────────────────────────── */
+
+.lang-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.lang-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 9px;
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  background: rgba(10, 8, 22, 0.38);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  position: relative;
+}
+
+.lang-option:hover {
+  border-color: rgba(139, 92, 246, 0.38);
+  background: rgba(109, 69, 212, 0.1);
+}
+
+.lang-option.selected {
+  border-color: rgba(139, 92, 246, 0.55);
+  background: rgba(109, 69, 212, 0.18);
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.14);
+}
+
+.lang-radio {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.lang-flag {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.lang-label {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--dash-text);
+  flex: 1;
+}
+
+.lang-check {
+  width: 14px;
+  height: 14px;
+  color: #a78bfa;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────── */
+
+@media (max-width: 500px) {
+  .settings-row {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-panel {
+    padding: 18px 18px 22px;
+  }
+
+  .settings-profile-header {
+    padding: 18px;
+  }
+}

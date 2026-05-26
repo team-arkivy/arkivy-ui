@@ -1,0 +1,133 @@
+<div class="settings-layout">
+  <div class="settings-container">
+
+    <!-- ─── Cabecera de perfil ──────────────────────────────── -->
+    <div class="settings-profile-header">
+      <div class="settings-avatar">{{ userInitials }}</div>
+      <div class="settings-identity">
+        <span class="settings-fullname">{{ fullName }}</span>
+        <span class="settings-email-dim">{{ profile.email }}</span>
+      </div>
+    </div>
+
+    <!-- ─── Tabs ────────────────────────────────────────────── -->
+    <div class="settings-tabs">
+      <button
+        class="settings-tab"
+        [class.active]="activeTab() === 'profile'"
+        (click)="setTab('profile')">
+        <app-icon name="user" class="tab-icon" />
+        Perfil
+      </button>
+      <button
+        class="settings-tab"
+        [class.active]="activeTab() === 'preferences'"
+        (click)="setTab('preferences')">
+        <app-icon name="settings" class="tab-icon" />
+        Preferencias
+      </button>
+    </div>
+
+    <!-- ─── Panel: Perfil ───────────────────────────────────── -->
+    @if (activeTab() === 'profile') {
+      <div class="settings-panel">
+        <div class="settings-section-title">Información personal</div>
+
+        <div class="settings-row">
+          <div class="field-group settings-field">
+            <label for="firstName">Nombre</label>
+            <div class="input-wrap">
+              <app-icon name="user" class="input-icon" />
+              <input
+                id="firstName"
+                type="text"
+                [(ngModel)]="profile.firstName"
+                placeholder="Tu nombre"
+                autocomplete="given-name" />
+            </div>
+          </div>
+
+          <div class="field-group settings-field">
+            <label for="lastName">Apellido</label>
+            <div class="input-wrap">
+              <app-icon name="user" class="input-icon" />
+              <input
+                id="lastName"
+                type="text"
+                [(ngModel)]="profile.lastName"
+                placeholder="Tu apellido"
+                autocomplete="family-name" />
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="email">Correo electrónico</label>
+          <div class="input-wrap">
+            <app-icon name="help" class="input-icon" />
+            <input
+              id="email"
+              type="email"
+              [value]="profile.email"
+              readonly
+              class="input-readonly"
+              placeholder="correo@ejemplo.com" />
+          </div>
+          <span class="field-hint">El correo se gestiona desde tu proveedor de identidad.</span>
+        </div>
+
+        <div class="settings-actions">
+          <button class="btn-save" (click)="saveProfile()">
+            Guardar cambios
+          </button>
+          @if (savedProfile()) {
+            <span class="save-feedback">
+              <app-icon name="check" class="save-check" />
+              Guardado
+            </span>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ─── Panel: Preferencias ─────────────────────────────── -->
+    @if (activeTab() === 'preferences') {
+      <div class="settings-panel">
+        <div class="settings-section-title">Idioma de la interfaz</div>
+
+        <div class="lang-grid">
+          @for (lang of languages; track lang.code) {
+            <label
+              class="lang-option"
+              [class.selected]="profile.language === lang.code">
+              <input
+                type="radio"
+                name="language"
+                [value]="lang.code"
+                [(ngModel)]="profile.language"
+                class="lang-radio" />
+              <span class="lang-flag">{{ lang.flag }}</span>
+              <span class="lang-label">{{ lang.label }}</span>
+              @if (profile.language === lang.code) {
+                <app-icon name="check" class="lang-check" />
+              }
+            </label>
+          }
+        </div>
+
+        <div class="settings-actions">
+          <button class="btn-save" (click)="savePreferences()">
+            Guardar preferencias
+          </button>
+          @if (savedPreferences()) {
+            <span class="save-feedback">
+              <app-icon name="check" class="save-check" />
+              Guardado
+            </span>
+          }
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

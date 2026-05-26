@@ -9,7 +9,7 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { IconComponent } from '../shared/icon/icon.component';
 import { DocumentationService } from '../shared/documentation.service';
 import { AuthService } from '../shared/auth.service';
@@ -95,7 +95,13 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
     @Inject(PLATFORM_ID) private platformId: object,
     public docService: DocumentationService,
     public authService: AuthService,
+    private router: Router,
   ) {}
+
+  goToSettings(): void {
+    this.userMenuOpen = false;
+    void this.router.navigate(['/dashboard/settings']);
+  }
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
