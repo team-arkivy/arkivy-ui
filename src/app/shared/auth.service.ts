@@ -9,7 +9,7 @@ const authConfig: AuthConfig = {
   postLogoutRedirectUri: 'http://localhost:4200',
   clientId: '371694118679670659',
   responseType: 'code',
-  scope: 'openid profile email',
+  scope: 'openid profile email urn:zitadel:iam:org:project:id:zitadel:aud',
   showDebugInformation: true,
   requireHttps: false, // solo para desarrollo
 };
@@ -41,6 +41,7 @@ export class AuthService {
 
   logout(): void {
     this.oauthService.logOut();
+    this.oauthService.postLogoutRedirectUri = 'http://localhost:4200';
   }
 
   isLoggedIn(): boolean {
@@ -53,5 +54,24 @@ export class AuthService {
 
   getUserInfo(): object {
     return this.oauthService.getIdentityClaims();
+  }
+
+  getRoles(): string[] {
+    const claims = this.oauthService.getIdentityClaims() as any;
+    if (!claims) return [];
+
+    const rolesObj = claims['urn:zitadel:iam:org:project:roles'];
+    if (!rolesObj) return [];
+
+    return Object.keys(rolesObj);
+  }
+
+  hasRole(role: string): boolean {
+    return this.getRoles().includes(role);
+  }
+
+  hasAnyRole(roles: string[]): boolean {
+    const userRoles = this.getRoles();
+    return roles.some(role => userRoles.includes(role));
   }
 }

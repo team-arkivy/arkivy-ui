@@ -73,18 +73,6 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
   }
 
   onSubmit(): void {
-    if (!this.credentials.username || !this.credentials.password) {
-      this.triggerShake();
-      return;
-    }
-
-    this.isLoading = true;
-    this.loginError = '';
-
-    setTimeout(() => {
-      this.isLoading = false;
-      void this.router.navigate(['/dashboard']);
-    }, 1800);
     this.authService.login();
   }
 
