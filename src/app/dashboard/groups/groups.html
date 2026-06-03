@@ -303,11 +303,12 @@
 
       </div><!-- /detail-main -->
 
-      <!-- ══════════════════════════════════════════════════════
-           PANEL CONTEXTUAL — Detalle de espacio o previsualización
-           ══════════════════════════════════════════════════════ -->
-      @if (contextView) {
-        <aside class="context-panel">
+    <!-- ══════════════════════════════════════════════════════
+         OVERLAY — Tarjeta de previsualización centrada
+         ══════════════════════════════════════════════════════ -->
+    @if (contextView) {
+      <div class="ctx-overlay" (click)="closeContextPanel()">
+        <div class="ctx-card" (click)="$event.stopPropagation()">
 
           <!-- ── DETALLE DE ESPACIO ─────────────────────────── -->
           @if (contextView.type === 'space') {
@@ -381,8 +382,9 @@
             </div>
           }
 
-        </aside>
-      }
+        </div>
+      </div>
+    }
 
     </main>
 

@@ -34,26 +34,6 @@
           <app-icon name="doc" class="nav-icon" />
           <span>Documentation</span>
         </a>
-        @if (docLink.isActive) {
-          <div class="nav-spaces">
-            @for (space of docService.spaces; track space.id) {
-              <div
-                class="nav-space-item"
-                [class.active]="space.id === docService.selectedSpaceId()"
-                (click)="docService.selectSpace(space.id)">
-                <app-icon name="folder" class="nav-icon-sm" />
-                <span class="nav-space-label">{{ space.name }}</span>
-                <button class="nav-space-kebab" (click)="$event.stopPropagation()">
-                  <app-icon name="more-horizontal" />
-                </button>
-              </div>
-            }
-            <button class="nav-space-action">
-              <app-icon name="folder-plus" class="nav-icon-sm" />
-              <span>Create a new space</span>
-            </button>
-          </div>
-        }
       </div>
 
       <a routerLink="/dashboard/users" routerLinkActive="active" class="nav-item">
