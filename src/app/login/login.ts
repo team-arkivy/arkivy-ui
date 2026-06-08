@@ -73,7 +73,23 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
   }
 
   onSubmit(): void {
-    this.authService.login();
+    if (!this.credentials.username || !this.credentials.password) {
+      this.triggerShake();
+      return;
+    }
+    this.isLoading = true;
+    this.loginError = '';
+    this.authService.loginWithCredentials(this.credentials).subscribe({
+      next: () => {
+        this.isLoading = false;
+        void this.router.navigate(['/dashboard']);
+      },
+      error: (err: { error?: { message?: string } }) => {
+        this.isLoading = false;
+        this.loginError = err?.error?.message ?? 'Credenciales inválidas';
+        this.triggerShake();
+      },
+    });
   }
 
   onForgotPassword(event: Event): void {
@@ -86,11 +102,11 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
   }
 
   loginWithGoogle(): void {
-    this.authService.login();
+    this.authService.loginWithOAuth();
   }
 
   loginWithGitHub(): void {
-    this.authService.login();
+    this.authService.loginWithOAuth();
   }
 
   private triggerShake(): void {

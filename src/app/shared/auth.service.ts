@@ -2,6 +2,9 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { OAuthService, AuthConfig } from 'angular-oauth2-oidc';
 import { Router } from '@angular/router';
+import { Observable, tap } from 'rxjs';
+import { ApiService, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from './api.service';
+import { TOKEN_KEY } from './interceptors/auth.interceptor';
 
 const authConfig: AuthConfig = {
   issuer: 'https://dev-arkivy-ybl40k.us1.zitadel.cloud',
@@ -11,7 +14,7 @@ const authConfig: AuthConfig = {
   responseType: 'code',
   scope: 'openid profile email urn:zitadel:iam:org:project:id:zitadel:aud',
   showDebugInformation: true,
-  requireHttps: false, // solo para desarrollo
+  requireHttps: false,
 };
 
 @Injectable({ providedIn: 'root' })
@@ -19,6 +22,7 @@ export class AuthService {
   constructor(
     private oauthService: OAuthService,
     private router: Router,
+    private apiService: ApiService,
     @Inject(PLATFORM_ID) private platformId: object,
   ) {
     this.configure();
@@ -35,20 +39,44 @@ export class AuthService {
     }
   }
 
-  login(): void {
+  loginWithOAuth(): void {
     this.oauthService.initCodeFlow();
   }
 
+  loginWithCredentials(credentials: LoginRequest): Observable<LoginResponse> {
+    return this.apiService.login(credentials).pipe(
+      tap(res => {
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.setItem(TOKEN_KEY, res.access_token);
+        }
+      }),
+    );
+  }
+
+  register(data: RegisterRequest): Observable<RegisterResponse> {
+    return this.apiService.register(data);
+  }
+
   logout(): void {
+    if (isPlatformBrowser(this.platformId) && localStorage.getItem(TOKEN_KEY)) {
+      localStorage.removeItem(TOKEN_KEY);
+      this.apiService.logout().subscribe();
+    }
     this.oauthService.logOut();
-    this.oauthService.postLogoutRedirectUri = 'http://localhost:4200';
   }
 
   isLoggedIn(): boolean {
+    if (isPlatformBrowser(this.platformId) && localStorage.getItem(TOKEN_KEY)) {
+      return true;
+    }
     return this.oauthService.hasValidAccessToken();
   }
 
   getAccessToken(): string {
+    if (isPlatformBrowser(this.platformId)) {
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (token) return token;
+    }
     return this.oauthService.getAccessToken();
   }
 
@@ -57,12 +85,10 @@ export class AuthService {
   }
 
   getRoles(): string[] {
-    const claims = this.oauthService.getIdentityClaims() as any;
+    const claims = this.oauthService.getIdentityClaims() as Record<string, unknown>;
     if (!claims) return [];
-
-    const rolesObj = claims['urn:zitadel:iam:org:project:roles'];
+    const rolesObj = claims['urn:zitadel:iam:org:project:roles'] as Record<string, unknown> | undefined;
     if (!rolesObj) return [];
-
     return Object.keys(rolesObj);
   }
 
