@@ -131,6 +131,17 @@
           <span>GitHub</span>
         </button>
       </div>
-  
+
+      <!-- Solo visible con environment.devAuthBypass=true; además requiere DEV_AUTH_BYPASS=true en el backend -->
+      <button
+        *ngIf="devAuthBypass"
+        type="button"
+        class="dev-login-btn"
+        [disabled]="isLoading"
+        (click)="loginAsDev()"
+      >
+        ⚠ Modo desarrollo (sin Zitadel)
+      </button>
+
     </div>
   </div>

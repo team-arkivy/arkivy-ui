@@ -34,6 +34,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'documentation/:pageId',
+        loadComponent: () =>
+          import('./dashboard/documentation/documentation').then(
+            (m) => m.DocumentationComponent,
+          ),
+      },
+      {
         path: 'users',
         canActivate: [roleGuard('sys-admin', 'plat-admin')],
         loadComponent: () =>

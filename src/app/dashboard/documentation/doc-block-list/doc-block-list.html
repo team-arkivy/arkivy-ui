@@ -1,0 +1,49 @@
+<div class="notion-blocks">
+  @for (block of blocks; track block.id; let i = $index) {
+    <div
+      class="notion-block-row"
+      [class.is-dragging]="draggingIdx === i"
+      [class.drag-over]="dragOverIdx === i"
+      draggable="true"
+      (dragstart)="onDragStart($event, i)"
+      (dragover)="onDragOver($event, i)"
+      (drop)="onDrop($event)"
+      (dragend)="onDragEnd()"
+    >
+      <div class="drag-handle" title="Mover">
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+      </div>
+      <app-doc-block
+        #blockCmp
+        [block]="block"
+        (contentChange)="onContentChange(block, $event)"
+        (languageChange)="onLanguageChange(block, $event)"
+        (splitRequested)="onSplitRequested(block, $event)"
+        (mergeRequested)="onMergeRequested(block, i)"
+      />
+    </div>
+  }
+
+  <!-- Zona de drop después del último bloque -->
+  <div
+    class="drop-after-last"
+    [class.active]="dragOverIdx === blocks.length && draggingIdx !== null"
+    (dragover)="onDragOverEnd($event)"
+    (drop)="onDrop($event)"
+  ></div>
+
+  <div class="doc-add-block-wrap">
+    <button class="doc-add-block-btn" type="button" (click)="toggleAddMenu()">
+      <app-icon name="plus" /> Agregar bloque
+    </button>
+    @if (showAddMenu) {
+      <div class="doc-add-block-menu">
+        <button type="button" (click)="addBlock('text')"><app-icon name="doc" /> Texto</button>
+        <button type="button" (click)="addBlock('code')"><app-icon name="code" /> Código</button>
+        <button type="button" (click)="addBlock('file')"><app-icon name="file" /> Archivo</button>
+        <button type="button" (click)="addBlock('link')"><app-icon name="link" /> Enlace</button>
+      </div>
+    }
+  </div>
+</div>

@@ -60,13 +60,7 @@
     <header class="dash-header">
       <div class="header-left">
         @if (docLink.isActive) {
-          <nav class="breadcrumb" aria-label="breadcrumb">
-            <span class="breadcrumb-item">Documentation</span>
-            <span class="breadcrumb-sep">/</span>
-            <span class="breadcrumb-item">{{ docService.selectedSpace.name }}</span>
-            <span class="breadcrumb-sep">/</span>
-            <span class="breadcrumb-item breadcrumb-current">{{ docService.selectedDoc() }}</span>
-          </nav>
+          <app-doc-breadcrumb />
         }
       </div>
       <div class="header-actions">
@@ -108,37 +102,7 @@
 
   <!-- ─── Panel TOC (full height, al mismo nivel que el sidebar) ── -->
   @if (docLink.isActive) {
-    <aside class="doc-toc-panel" [class.toc-collapsed]="!docService.tocOpen()">
-      <div class="toc-panel-header">
-        <button class="panel-toggle-inner" (click)="docService.toggleToc()">
-          <app-icon name="layout-right" />
-        </button>
-      </div>
-      <h2 class="toc-space-title">{{ docService.selectedSpace.name }}</h2>
-
-      @for (section of docService.selectedSpace.tableOfContents; track section.category) {
-        <div class="toc-section">
-          <div class="toc-section-header">
-            <span class="toc-category">{{ section.category }}</span>
-            <button class="toc-info-btn" type="button">
-              <app-icon name="info" class="toc-info-icon" />
-            </button>
-          </div>
-          <div class="toc-items">
-            @for (doc of section.items; track doc) {
-              <button
-                class="toc-doc-item"
-                [class.active]="doc === docService.selectedDoc()"
-                (click)="docService.selectDoc(doc)">
-                <app-icon name="doc" class="toc-icon" />
-                <span>{{ doc }}</span>
-              </button>
-            }
-            <button class="toc-action-item">{{ section.action }}</button>
-          </div>
-        </div>
-      }
-    </aside>
+    <app-doc-toc />
   }
 
   <!-- ─── Botón flotante: sidebar colapsado ────────────────── -->
@@ -151,8 +115,8 @@
   }
 
   <!-- ─── Botón flotante: TOC colapsado ────────────────────── -->
-  @if (docLink.isActive && !docService.tocOpen()) {
-    <button class="floating-panel-btn floating-right" (click)="docService.toggleToc()">
+  @if (docLink.isActive && !content.tocOpen()) {
+    <button class="floating-panel-btn floating-right" (click)="content.toggleToc()">
       <app-icon name="layout-right" class="floating-icon" />
     </button>
   }

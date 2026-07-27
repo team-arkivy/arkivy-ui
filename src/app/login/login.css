@@ -171,6 +171,33 @@
 .bp-3 { width: 108px; top: 12%; left: 3%;  opacity: 0.18; --r: -14deg; animation-delay: -4.5s; }
 .bp-4 { width:  68px; bottom: 18%; left: 7%; opacity: 0.14; --r:  10deg; animation-delay: -1.5s; }
 
+/* ─── Botón de modo desarrollo (bypass de Zitadel) ──────────── */
+.dev-login-btn {
+  width: 100%;
+  margin-top: 14px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px dashed rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.08);
+  color: rgba(253, 224, 71, 0.85);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: var(--font-ui, inherit);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.14s, border-color 0.14s;
+}
+
+.dev-login-btn:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.16);
+  border-color: rgba(251, 191, 36, 0.7);
+}
+
+.dev-login-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ─── Responsive ─────────────────────────────────────────── */
 @media (max-width: 480px) {
   .login-card  { margin: 16px; padding: 30px 22px 24px; }

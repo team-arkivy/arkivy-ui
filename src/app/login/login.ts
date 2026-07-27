@@ -1,6 +1,7 @@
 import {
   Component,
   OnDestroy,
+  OnInit,
   AfterViewInit,
   ViewChild,
   ElementRef,
@@ -9,8 +10,9 @@ import {
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {AuthService} from '../shared/auth.service';
+import { environment } from '../../environments/environment';
 
 interface LoginCredentials {
   username: string;
@@ -32,7 +34,7 @@ interface NetworkNode {
   templateUrl: './login.html',
   styleUrls: ['./login.css'],
 })
-export class LoginComponent implements AfterViewInit, OnDestroy {
+export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('networkCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   credentials: LoginCredentials = { username: '', password: '' };
@@ -41,6 +43,8 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
   isLoading = false;
   shakeCard = false;
   loginError = '';
+
+  readonly devAuthBypass = environment.devAuthBypass;
 
   private animFrameId = 0;
   private nodes: NetworkNode[] = [];
@@ -55,9 +59,37 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private authService: AuthService,
     @Inject(PLATFORM_ID) private platformId: object,
   ) {}
+
+  ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    // Zitadel redirects back here (from /auth/google or /auth/github) with
+    // id/token/user_id query params identifying the completed IDP intent.
+    // NOTE: verify these exact param names against a real Zitadel IDP flow —
+    // see internal/auth.Handler.IDPCallback on the backend for the expected shape.
+    const params = this.route.snapshot.queryParamMap;
+    const intentId = params.get('id');
+    const intentToken = params.get('token');
+    const userId = params.get('user_id');
+
+    if (intentId && intentToken && userId) {
+      this.isLoading = true;
+      this.authService.completeIdpLogin(intentId, intentToken, userId).subscribe({
+        next: () => {
+          this.isLoading = false;
+          void this.router.navigate(['/dashboard']);
+        },
+        error: () => {
+          this.isLoading = false;
+          this.loginError = 'No se pudo completar el inicio de sesión con el proveedor externo';
+        },
+      });
+    }
+  }
 
   ngAfterViewInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -102,11 +134,28 @@ export class LoginComponent implements AfterViewInit, OnDestroy {
   }
 
   loginWithGoogle(): void {
-    this.authService.loginWithOAuth();
+    this.authService.loginWithGoogle();
   }
 
   loginWithGitHub(): void {
-    this.authService.loginWithOAuth();
+    this.authService.loginWithGitHub();
+  }
+
+  /** Local-only escape hatch while there's no real Zitadel session — see environment.devAuthBypass. */
+  loginAsDev(): void {
+    this.isLoading = true;
+    this.loginError = '';
+    this.authService.devLogin().subscribe({
+      next: () => {
+        this.isLoading = false;
+        void this.router.navigate(['/dashboard']);
+      },
+      error: () => {
+        this.isLoading = false;
+        this.loginError = 'DEV_AUTH_BYPASS no está activo en el backend.';
+        this.triggerShake();
+      },
+    });
   }
 
   private triggerShake(): void {

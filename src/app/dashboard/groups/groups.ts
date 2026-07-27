@@ -1,9 +1,19 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { IconComponent } from '../../shared/icon/icon.component';
+import {
+  ApiService,
+  Group as ApiGroup,
+  GroupDetail,
+  Space,
+  TocCategory,
+  Page as ApiPage,
+} from '../../shared/api.service';
 
-// ─── Interfaces del dominio ───────────────────────────────────────────────────
+// ─── Interfaces del dominio (vistas hidratadas desde la API real) ─────────────
 
 interface GroupMember {
   id: string;
@@ -15,15 +25,23 @@ interface GroupMember {
 interface GroupSpace {
   id: string;
   name: string;
-  access: 'Editor' | 'Reader';
 }
 
-interface GroupFile {
+// Metadatos comunes de una página/archivo, ya resueltos contra el catálogo
+// de la organización (nombre del espacio, autor, categoría legible, etc.)
+interface FileMeta {
   id: string;
   name: string;
-  space: string | null; // null = archivo suelto (sin espacio asignado)
-  access: 'Editor' | 'Reader';
+  spaceId: string;
+  space: string;
+  category: string;
+  status: string;
+  authorName: string;
+  createdAt: string;
+  updatedAt: string;
 }
+
+type GroupFile = FileMeta;
 
 interface Group {
   id: string;
@@ -34,7 +52,7 @@ interface Group {
   members: GroupMember[];
 }
 
-// ─── Catálogo global (recursos disponibles en el sistema) ─────────────────────
+// ─── Catálogo global (recursos disponibles en la organización) ────────────────
 
 interface AvailableUser {
   id: string;
@@ -46,14 +64,11 @@ interface AvailableUser {
 interface AvailableSpace {
   id: string;
   name: string;
-  fileCount: number;
+  pageCount: number;
   selected: boolean;
 }
 
-interface AvailableFile {
-  id: string;
-  name: string;
-  space: string | null;
+interface AvailableFile extends FileMeta {
   selected: boolean;
 }
 
@@ -70,7 +85,17 @@ type ContextView =
   templateUrl: './groups.html',
   styleUrls: ['./groups.css'],
 })
-export class GroupsComponent {
+export class GroupsComponent implements OnInit {
+
+  constructor(private api: ApiService) {}
+
+  // ─── Carga y estado de red ──────────────────────────────────────────────────
+  loading = true;
+  refreshing = false;
+  busy = false;
+  errorMessage = '';
+  actionError = '';
+  private pendingSelectId: string | null = null;
 
   // ─── Selección y navegación ─────────────────────────────────────────────────
   searchQuery = '';
@@ -85,9 +110,6 @@ export class GroupsComponent {
   editingFileId: string | null = null;
   editValue = '';
 
-  // ─── Mover archivo a espacio ────────────────────────────────────────────────
-  movingFileId: string | null = null;
-
   // ─── Maximizar sección de espacios ──────────────────────────────────────────
   spacesExpanded = false;
 
@@ -97,72 +119,170 @@ export class GroupsComponent {
 
   showAddSpaceModal = false;
   addSpaceSearch = '';
-  pendingSpaceAccess: 'Editor' | 'Reader' = 'Reader';
 
   showAddFileModal = false;
   addFileSearch = '';
-  pendingFileAccess: 'Editor' | 'Reader' = 'Reader';
 
   showAddMemberModal = false;
   addMemberSearch = '';
   pendingMemberRole: 'Editor' | 'Reader' = 'Reader';
 
-  // ─── Catálogo del sistema ────────────────────────────────────────────────────
-  readonly allUsers: AvailableUser[] = [
-    { id: 'u1', name: 'Ana García',     email: 'ana@empresa.com',    selected: false },
-    { id: 'u2', name: 'Carlos López',   email: 'carlos@empresa.com', selected: false },
-    { id: 'u3', name: 'María Torres',   email: 'maria@empresa.com',  selected: false },
-    { id: 'u4', name: 'Pedro Martínez', email: 'pedro@empresa.com',  selected: false },
-    { id: 'u5', name: 'Laura Sánchez',  email: 'laura@empresa.com',  selected: false },
-  ];
+  // ─── Catálogo de la organización (cargado desde la API real) ────────────────
+  allUsers: AvailableUser[] = [];
+  allSpaces: AvailableSpace[] = [];
+  allFiles: AvailableFile[] = [];
 
-  readonly allSpaces: AvailableSpace[] = [
-    { id: 's1', name: 'Tutorial',     fileCount: 2, selected: false },
-    { id: 's2', name: 'How to guide', fileCount: 2, selected: false },
-    { id: 's3', name: 'Reference',    fileCount: 2, selected: false },
-    { id: 's4', name: 'Explanation',  fileCount: 2, selected: false },
-    { id: 's5', name: 'Multiple',     fileCount: 2, selected: false },
-  ];
+  // ─── Grupos (hidratados con el catálogo de arriba) ───────────────────────────
+  groups: Group[] = [];
 
-  readonly allFiles: AvailableFile[] = [
-    { id: 'f1', name: 'Tutorial_number_one',    space: 'Tutorial',     selected: false },
-    { id: 'f2', name: 'Tutorial_number_two',    space: 'Tutorial',     selected: false },
-    { id: 'f3', name: 'How_to_guide_one',       space: 'How to guide', selected: false },
-    { id: 'f4', name: 'How_to_guide_two',       space: 'How to guide', selected: false },
-    { id: 'f5', name: 'Reference_one',          space: 'Reference',    selected: false },
-    { id: 'f6', name: 'Explanation_number_one', space: 'Explanation',  selected: false },
-  ];
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CARGA DE DATOS
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  // ─── Datos de grupos ──────────────────────────────────────────────────────────
-  groups: Group[] = [
-    {
-      id: 'g1', name: 'Lectores', createdAt: '12/10/2025',
-      spaces: [{ id: 's1', name: 'Tutorial', access: 'Reader' }],
-      files: [{ id: 'f6', name: 'Explanation_number_one', space: 'Explanation', access: 'Reader' }],
-      members: [
-        { id: 'u1', name: 'Ana García',   email: 'ana@empresa.com',   role: 'Reader' },
-        { id: 'u3', name: 'María Torres', email: 'maria@empresa.com', role: 'Reader' },
-      ],
-    },
-    {
-      id: 'g2', name: 'Editores', createdAt: '01/15/2025',
-      spaces: [
-        { id: 's2', name: 'How to guide', access: 'Editor' },
-        { id: 's3', name: 'Reference',    access: 'Editor' },
-      ],
-      files: [],
-      members: [{ id: 'u2', name: 'Carlos López', email: 'carlos@empresa.com', role: 'Editor' }],
-    },
-    {
-      id: 'g3', name: 'Equipo documentación', createdAt: '03/20/2025',
-      spaces: [],
-      files: [{ id: 'f3', name: 'How_to_guide_one', space: 'How to guide', access: 'Editor' }],
-      members: [
-        { id: 'u4', name: 'Pedro Martínez', email: 'pedro@empresa.com', role: 'Editor' },
-        { id: 'u5', name: 'Laura Sánchez',  email: 'laura@empresa.com', role: 'Reader' },
-      ],
-    },
-  ];
+  ngOnInit(): void {
+    this.loadEverything();
+  }
+
+  retryLoad(): void {
+    this.loading = true;
+    this.errorMessage = '';
+    this.loadEverything();
+  }
+
+  private refresh(): void {
+    this.refreshing = true;
+    this.loadEverything();
+  }
+
+  private loadEverything(): void {
+    this.errorMessage = '';
+    this.actionError = '';
+
+    forkJoin({
+      groups: this.api.listGroups(),
+      users: this.api.listUsers(),
+      spaces: this.api.listSpaces(),
+    }).pipe(
+      switchMap(({ groups, users, spaces }) =>
+        forkJoin({
+          users: of(users),
+          spaces: of(spaces),
+          pagesBySpace: spaces.length
+            ? forkJoin(spaces.map(space =>
+                this.api.listPagesBySpace(space.id).pipe(map(toc => ({ space, toc })))
+              ))
+            : of([] as { space: Space; toc: TocCategory[] }[]),
+          details: groups.length
+            ? forkJoin(groups.map(g => this.api.getGroup(g.id)))
+            : of([] as GroupDetail[]),
+        })
+      ),
+    ).subscribe({
+      next: ({ users, spaces, pagesBySpace, details }) => {
+        this.allUsers = users.map(u => ({ id: u.id, name: u.name, email: u.email, selected: false }));
+        this.allFiles = this.buildFilesCatalog(pagesBySpace);
+        this.allSpaces = spaces.map(s => ({
+          id: s.id,
+          name: s.name,
+          pageCount: this.allFiles.filter(f => f.spaceId === s.id).length,
+          selected: false,
+        }));
+        this.groups = details.map(d => this.hydrateGroup(d));
+        this.finishLoad();
+      },
+      error: () => {
+        this.errorMessage = 'No se pudieron cargar los grupos. Verifica tu sesión e inténtalo de nuevo.';
+        this.finishLoad();
+      },
+    });
+  }
+
+  private finishLoad(): void {
+    this.loading = false;
+    this.refreshing = false;
+    this.busy = false;
+    if (this.pendingSelectId) {
+      const group = this.groups.find(g => g.id === this.pendingSelectId);
+      this.pendingSelectId = null;
+      if (group) this.selectGroup(group);
+    }
+  }
+
+  private buildFilesCatalog(pagesBySpace: { space: Space; toc: TocCategory[] }[]): AvailableFile[] {
+    const usersById = new Map(this.allUsers.map(u => [u.id, u]));
+    const files: AvailableFile[] = [];
+    for (const { space, toc } of pagesBySpace) {
+      for (const category of toc) {
+        for (const p of category.pages) {
+          files.push(this.toFileMeta(p, space, usersById));
+        }
+      }
+    }
+    return files.map(f => ({ ...f, selected: false }));
+  }
+
+  private toFileMeta(page: ApiPage, space: Space, usersById: Map<string, AvailableUser>): AvailableFile {
+    return {
+      id: page.id,
+      name: page.title,
+      spaceId: space.id,
+      space: space.name,
+      category: this.categoryLabel(page.category),
+      status: page.status,
+      authorName: usersById.get(page.authorId)?.name ?? page.authorId,
+      createdAt: this.formatDate(page.createdAt),
+      updatedAt: this.formatDate(page.updatedAt),
+      selected: false,
+    };
+  }
+
+  private hydrateGroup(detail: GroupDetail): Group {
+    const spaces: GroupSpace[] = detail.spaces
+      .map(sa => this.allSpaces.find(s => s.id === sa.spaceId))
+      .filter((s): s is AvailableSpace => !!s)
+      .map(s => ({ id: s.id, name: s.name }));
+
+    const files: GroupFile[] = detail.pages
+      .map(pa => this.allFiles.find(f => f.id === pa.pageId))
+      .filter((f): f is AvailableFile => !!f)
+      .map(({ selected: _selected, ...meta }) => meta);
+
+    const members: GroupMember[] = detail.members.map(m => {
+      const u = this.allUsers.find(u => u.id === m.userId);
+      return {
+        id: m.userId,
+        name: u?.name ?? m.userId,
+        email: u?.email ?? '',
+        role: m.role === 'editor' ? 'Editor' : 'Reader',
+      };
+    });
+
+    return {
+      id: detail.group.id,
+      name: detail.group.name,
+      createdAt: this.formatDate(detail.group.createdAt),
+      spaces,
+      files,
+      members,
+    };
+  }
+
+  private formatDate(iso: string): string {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+  }
+
+  private categoryLabel(cat: string): string {
+    switch (cat) {
+      case 'tutorial': return 'Tutorial';
+      case 'how_to': return 'Cómo hacer';
+      case 'reference': return 'Referencia';
+      case 'explanation': return 'Explicación';
+      case 'multiple': return 'Múltiple';
+      default: return cat;
+    }
+  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SELECCIÓN Y NAVEGACIÓN
@@ -183,7 +303,6 @@ export class GroupsComponent {
     this.activeTab = 'content';
     this.contextView = null;
     this.cancelEdit();
-    this.closeMoveMenu();
     this.spacesExpanded = false;
   }
 
@@ -191,7 +310,6 @@ export class GroupsComponent {
     this.activeTab = tab;
     this.contextView = null;
     this.cancelEdit();
-    this.closeMoveMenu();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -212,27 +330,25 @@ export class GroupsComponent {
     if (this.editingSpaceId === space.id) return;
     event.stopPropagation();
     this.contextView = { type: 'space', space };
-    this.closeMoveMenu();
   }
 
   openFileView(file: GroupFile | AvailableFile, event: Event): void {
     if ('id' in file && this.editingFileId === file.id) return;
     event.stopPropagation();
     this.contextView = { type: 'file', file };
-    this.closeMoveMenu();
   }
 
   closeContextPanel(): void {
     this.contextView = null;
   }
 
-  /** Devuelve los archivos del catálogo que pertenecen a un espacio dado */
-  getFilesInSpace(spaceName: string): AvailableFile[] {
-    return this.allFiles.filter(f => f.space === spaceName);
+  /** Devuelve las páginas del catálogo que pertenecen a un espacio dado */
+  getFilesInSpace(spaceId: string): AvailableFile[] {
+    return this.allFiles.filter(f => f.spaceId === spaceId);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // EDICIÓN INLINE DE NOMBRES
+  // EDICIÓN INLINE DE NOMBRES (renombra el Espacio/Página real)
   // ═══════════════════════════════════════════════════════════════════════════
 
   startEditSpace(space: GroupSpace, event: Event): void {
@@ -246,8 +362,16 @@ export class GroupsComponent {
 
   saveSpaceName(space: GroupSpace): void {
     const name = this.editValue.trim();
-    if (name) space.name = name;
     this.editingSpaceId = null;
+    if (!name || name === space.name) return;
+    this.busy = true;
+    this.api.renameSpace(space.id, name).subscribe({
+      next: () => this.refresh(),
+      error: () => {
+        this.busy = false;
+        this.actionError = 'No se pudo renombrar el espacio.';
+      },
+    });
   }
 
   startEditFile(file: GroupFile, event: Event): void {
@@ -261,8 +385,16 @@ export class GroupsComponent {
 
   saveFileName(file: GroupFile): void {
     const name = this.editValue.trim();
-    if (name) file.name = name;
     this.editingFileId = null;
+    if (!name || name === file.name) return;
+    this.busy = true;
+    this.api.updatePage(file.id, { title: name }).subscribe({
+      next: () => this.refresh(),
+      error: () => {
+        this.busy = false;
+        this.actionError = 'No se pudo renombrar el archivo.';
+      },
+    });
   }
 
   cancelEdit(): void {
@@ -276,29 +408,6 @@ export class GroupsComponent {
       input?.focus();
       input?.select();
     }, 0);
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // MOVER ARCHIVO A ESPACIO
-  // ═══════════════════════════════════════════════════════════════════════════
-
-  toggleMoveMenu(fileId: string, event: Event): void {
-    event.stopPropagation();
-    this.movingFileId = this.movingFileId === fileId ? null : fileId;
-    this.cancelEdit();
-  }
-
-  closeMoveMenu(): void {
-    this.movingFileId = null;
-  }
-
-  moveFileToSpace(file: GroupFile, spaceName: string): void {
-    file.space = spaceName;
-    this.movingFileId = null;
-    // Si el panel contextual mostraba este archivo, actualiza la vista
-    if (this.contextView?.type === 'file' && this.contextView.file === file) {
-      this.contextView = { type: 'file', file };
-    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -325,13 +434,18 @@ export class GroupsComponent {
   confirmCreateGroup(): void {
     const name = this.newGroupName.trim();
     if (!name) return;
-    const id = 'g' + Date.now();
-    const d = new Date();
-    const createdAt = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
-    this.groups = [...this.groups, { id, name, createdAt, spaces: [], files: [], members: [] }];
-    this.selectedGroupId = id;
-    this.activeTab = 'content';
-    this.showCreateGroupModal = false;
+    this.busy = true;
+    this.api.createGroup(name).subscribe({
+      next: (group: ApiGroup) => {
+        this.showCreateGroupModal = false;
+        this.pendingSelectId = group.id;
+        this.refresh();
+      },
+      error: () => {
+        this.busy = false;
+        this.actionError = 'No se pudo crear el grupo.';
+      },
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -349,7 +463,6 @@ export class GroupsComponent {
   openAddSpaceModal(): void {
     this.allSpaces.forEach(s => (s.selected = false));
     this.addSpaceSearch = '';
-    this.pendingSpaceAccess = 'Reader';
     this.showAddSpaceModal = true;
   }
 
@@ -357,13 +470,19 @@ export class GroupsComponent {
 
   confirmAddSpaces(): void {
     const group = this.selectedGroup;
-    if (!group) return;
-    for (const s of this.allSpaces.filter(s => s.selected)) {
-      if (!group.spaces.find(gs => gs.id === s.id)) {
-        group.spaces.push({ id: s.id, name: s.name, access: this.pendingSpaceAccess });
-      }
-    }
-    this.showAddSpaceModal = false;
+    const selected = this.allSpaces.filter(s => s.selected);
+    if (!group || selected.length === 0) return;
+    this.busy = true;
+    forkJoin(selected.map(s => this.api.grantGroupSpaceAccess(group.id, s.id))).subscribe({
+      next: () => {
+        this.showAddSpaceModal = false;
+        this.refresh();
+      },
+      error: () => {
+        this.busy = false;
+        this.actionError = 'No se pudieron agregar los espacios.';
+      },
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -375,13 +494,12 @@ export class GroupsComponent {
     const q = this.addFileSearch.toLowerCase().trim();
     return this.allFiles
       .filter(f => !taken.has(f.id))
-      .filter(f => !q || f.name.toLowerCase().includes(q) || (f.space?.toLowerCase().includes(q) ?? false));
+      .filter(f => !q || f.name.toLowerCase().includes(q) || f.space.toLowerCase().includes(q));
   }
 
   openAddFileModal(): void {
     this.allFiles.forEach(f => (f.selected = false));
     this.addFileSearch = '';
-    this.pendingFileAccess = 'Reader';
     this.showAddFileModal = true;
   }
 
@@ -389,13 +507,19 @@ export class GroupsComponent {
 
   confirmAddFiles(): void {
     const group = this.selectedGroup;
-    if (!group) return;
-    for (const f of this.allFiles.filter(f => f.selected)) {
-      if (!group.files.find(gf => gf.id === f.id)) {
-        group.files.push({ id: f.id, name: f.name, space: f.space, access: this.pendingFileAccess });
-      }
-    }
-    this.showAddFileModal = false;
+    const selected = this.allFiles.filter(f => f.selected);
+    if (!group || selected.length === 0) return;
+    this.busy = true;
+    forkJoin(selected.map(f => this.api.grantGroupPageAccess(group.id, f.id))).subscribe({
+      next: () => {
+        this.showAddFileModal = false;
+        this.refresh();
+      },
+      error: () => {
+        this.busy = false;
+        this.actionError = 'No se pudieron agregar los archivos.';
+      },
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -421,13 +545,20 @@ export class GroupsComponent {
 
   confirmAddMembers(): void {
     const group = this.selectedGroup;
-    if (!group) return;
-    for (const u of this.allUsers.filter(u => u.selected)) {
-      if (!group.members.find(m => m.id === u.id)) {
-        group.members.push({ id: u.id, name: u.name, email: u.email, role: this.pendingMemberRole });
-      }
-    }
-    this.showAddMemberModal = false;
+    const selected = this.allUsers.filter(u => u.selected);
+    if (!group || selected.length === 0) return;
+    const role = this.pendingMemberRole === 'Editor' ? 'editor' : 'reader';
+    this.busy = true;
+    forkJoin(selected.map(u => this.api.addGroupMember(group.id, u.id, role))).subscribe({
+      next: () => {
+        this.showAddMemberModal = false;
+        this.refresh();
+      },
+      error: () => {
+        this.busy = false;
+        this.actionError = 'No se pudieron agregar los miembros.';
+      },
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -436,40 +567,60 @@ export class GroupsComponent {
 
   removeSpace(group: Group, space: GroupSpace, event: Event): void {
     event.stopPropagation();
-    group.spaces = group.spaces.filter(s => s.id !== space.id);
     if (this.contextView?.type === 'space' && this.contextView.space === space) {
       this.contextView = null;
     }
+    this.busy = true;
+    this.api.revokeGroupSpaceAccess(group.id, space.id).subscribe({
+      next: () => this.refresh(),
+      error: () => {
+        this.busy = false;
+        this.actionError = 'No se pudo quitar el espacio.';
+      },
+    });
   }
 
   removeFile(group: Group, file: GroupFile, event: Event): void {
     event.stopPropagation();
-    group.files = group.files.filter(f => f.id !== file.id);
     if (this.contextView?.type === 'file' && this.contextView.file === file) {
       this.contextView = null;
     }
+    this.busy = true;
+    this.api.revokeGroupPageAccess(group.id, file.id).subscribe({
+      next: () => this.refresh(),
+      error: () => {
+        this.busy = false;
+        this.actionError = 'No se pudo quitar el archivo.';
+      },
+    });
   }
 
   removeMember(group: Group, member: GroupMember): void {
-    group.members = group.members.filter(m => m.id !== member.id);
+    this.busy = true;
+    this.api.removeGroupMember(group.id, member.id).subscribe({
+      next: () => this.refresh(),
+      error: () => {
+        this.busy = false;
+        this.actionError = 'No se pudo quitar el miembro.';
+      },
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // CAMBIAR ACCESO / ROL
+  // CAMBIAR ROL DE MIEMBRO
   // ═══════════════════════════════════════════════════════════════════════════
-
-  changeSpaceAccess(space: GroupSpace, access: 'Editor' | 'Reader', event: Event): void {
-    event.stopPropagation();
-    space.access = access;
-  }
-
-  changeFileAccess(file: GroupFile, access: 'Editor' | 'Reader', event: Event): void {
-    event.stopPropagation();
-    file.access = access;
-  }
 
   changeMemberRole(member: GroupMember, role: 'Editor' | 'Reader'): void {
-    member.role = role;
+    const group = this.selectedGroup;
+    if (!group || member.role === role) return;
+    this.busy = true;
+    this.api.changeGroupMemberRole(group.id, member.id, role === 'Editor' ? 'editor' : 'reader').subscribe({
+      next: () => this.refresh(),
+      error: () => {
+        this.busy = false;
+        this.actionError = 'No se pudo cambiar el rol.';
+      },
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,10 @@
+<div class="modal-backdrop" (click)="cancel.emit()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <h2 class="modal-title">{{ title }}</h2>
+    <p class="modal-desc">{{ message }}</p>
+    <div class="modal-actions">
+      <button class="modal-cancel-btn" (click)="cancel.emit()">{{ cancelLabel }}</button>
+      <button class="modal-confirm-btn" (click)="confirm.emit()">{{ confirmLabel }}</button>
+    </div>
+  </div>
+</div>

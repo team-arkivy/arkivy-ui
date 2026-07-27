@@ -18,7 +18,14 @@
     </div>
 
     <div class="panel-list">
-      @if (filteredGroups.length === 0) {
+      @if (loading) {
+        <p class="panel-empty">Cargando grupos...</p>
+      } @else if (errorMessage) {
+        <div class="panel-empty">
+          <p>{{ errorMessage }}</p>
+          <button class="add-btn" (click)="retryLoad()">Reintentar</button>
+        </div>
+      } @else if (filteredGroups.length === 0) {
         <p class="panel-empty">Sin resultados</p>
       }
       @for (group of filteredGroups; track group.id) {
@@ -45,6 +52,15 @@
 
       <!-- Columna principal: header + tabs + contenido -->
       <div class="detail-main">
+
+        @if (actionError) {
+          <div class="action-error-banner">
+            <span>{{ actionError }}</span>
+            <button class="ctx-close-btn" title="Cerrar" (click)="actionError = ''">
+              <app-icon name="close" />
+            </button>
+          </div>
+        }
 
         <div class="detail-header">
           <div class="detail-header-info">
@@ -124,15 +140,9 @@
                       } @else {
                         <div class="item-info">
                           <span class="item-name">{{ space.name }}</span>
-                          <span class="item-sub">{{ getFilesInSpace(space.name).length }} documentos</span>
+                          <span class="item-sub">{{ getFilesInSpace(space.id).length }} documentos</span>
                         </div>
                       }
-
-                      <!-- Control de acceso (siempre visible) -->
-                      <div class="role-toggle" (click)="$event.stopPropagation()">
-                        <button class="role-btn" [class.active]="space.access === 'Reader'" (click)="changeSpaceAccess(space, 'Reader', $event)">Lector</button>
-                        <button class="role-btn" [class.active]="space.access === 'Editor'" (click)="changeSpaceAccess(space, 'Editor', $event)">Editor</button>
-                      </div>
 
                       <!-- Acciones (visibles al hover) -->
                       <div class="row-hover-actions">
@@ -194,49 +204,15 @@
                       } @else {
                         <div class="item-info">
                           <span class="item-name">{{ file.name }}</span>
-                          @if (file.space) { <span class="item-sub">en {{ file.space }}</span> }
-                          @else { <span class="item-sub loose">Sin espacio</span> }
+                          <span class="item-sub">en {{ file.space }}</span>
                         </div>
                       }
-
-                      <!-- Control de acceso (siempre visible) -->
-                      <div class="role-toggle" (click)="$event.stopPropagation()">
-                        <button class="role-btn" [class.active]="file.access === 'Reader'" (click)="changeFileAccess(file, 'Reader', $event)">Lector</button>
-                        <button class="role-btn" [class.active]="file.access === 'Editor'" (click)="changeFileAccess(file, 'Editor', $event)">Editor</button>
-                      </div>
 
                       <!-- Acciones (visibles al hover) -->
                       <div class="row-hover-actions">
                         <button class="row-action-btn" title="Editar nombre" (click)="startEditFile(file, $event)">
                           <app-icon name="edit" />
                         </button>
-
-                        <!-- Mover a espacio -->
-                        <div class="move-wrap" (click)="$event.stopPropagation()">
-                          <button
-                            class="row-action-btn"
-                            [class.active]="movingFileId === file.id"
-                            title="Mover a espacio"
-                            (click)="toggleMoveMenu(file.id, $event)"
-                          >
-                            <app-icon name="arrow-right" />
-                          </button>
-                          @if (movingFileId === file.id) {
-                            <div class="move-menu">
-                              <p class="move-menu-label">Mover a espacio</p>
-                              @if (group.spaces.length === 0) {
-                                <p class="move-menu-empty">Este grupo no tiene espacios.</p>
-                              }
-                              @for (space of group.spaces; track space.id) {
-                                <button class="move-menu-item" (click)="moveFileToSpace(file, space.name)">
-                                  <app-icon name="folder" class="move-menu-icon" />
-                                  {{ space.name }}
-                                </button>
-                              }
-                            </div>
-                          }
-                        </div>
-
                         <button class="row-action-btn danger" title="Quitar archivo" (click)="removeFile(group, file, $event)">
                           <app-icon name="close" />
                         </button>
@@ -316,7 +292,7 @@
               <div class="ctx-header-icon folder-clr"><app-icon name="folder" /></div>
               <div class="ctx-header-info">
                 <h2 class="ctx-title">{{ contextView.space.name }}</h2>
-                <p class="ctx-meta">Espacio de trabajo · {{ getFilesInSpace(contextView.space.name).length }} documentos</p>
+                <p class="ctx-meta">Espacio de trabajo · {{ getFilesInSpace(contextView.space.id).length }} documentos</p>
               </div>
               <button class="ctx-close-btn" title="Cerrar" (click)="closeContextPanel()">
                 <app-icon name="close" />
@@ -325,11 +301,11 @@
 
             <div class="ctx-body">
               <p class="ctx-section-label">Documentos en este espacio</p>
-              @if (getFilesInSpace(contextView.space.name).length === 0) {
+              @if (getFilesInSpace(contextView.space.id).length === 0) {
                 <p class="ctx-empty">No hay documentos en este espacio.</p>
               } @else {
                 <div class="ctx-file-list">
-                  @for (file of getFilesInSpace(contextView.space.name); track file.id) {
+                  @for (file of getFilesInSpace(contextView.space.id); track file.id) {
                     <div class="ctx-file-row" (click)="openFileView(file, $event)">
                       <div class="ctx-file-icon doc-clr"><app-icon name="doc" /></div>
                       <span class="ctx-file-name">{{ file.name }}</span>
@@ -347,10 +323,7 @@
               <div class="ctx-header-icon doc-clr"><app-icon name="doc" /></div>
               <div class="ctx-header-info">
                 <h2 class="ctx-title">{{ contextView.file.name }}</h2>
-                <p class="ctx-meta">
-                  @if (contextView.file.space) { en {{ contextView.file.space }} }
-                  @else { Archivo sin espacio }
-                </p>
+                <p class="ctx-meta">en {{ contextView.file.space }}</p>
               </div>
               <button class="ctx-close-btn" title="Cerrar" (click)="closeContextPanel()">
                 <app-icon name="close" />
@@ -361,23 +334,30 @@
               <div class="preview-doc">
                 <h3 class="preview-doc-title">{{ contextView.file.name }}</h3>
 
-                <div class="preview-block">
-                  <p>Este documento forma parte de la base de conocimiento del sistema. Contiene guías, procedimientos y referencias relevantes para el equipo.</p>
+                <div class="preview-meta-grid">
+                  <div class="preview-meta-item">
+                    <span class="preview-meta-label">Categoría</span>
+                    <span class="preview-meta-value">{{ contextView.file.category }}</span>
+                  </div>
+                  <div class="preview-meta-item">
+                    <span class="preview-meta-label">Estado</span>
+                    <span class="preview-meta-value">{{ contextView.file.status }}</span>
+                  </div>
+                  <div class="preview-meta-item">
+                    <span class="preview-meta-label">Autor</span>
+                    <span class="preview-meta-value">{{ contextView.file.authorName }}</span>
+                  </div>
+                  <div class="preview-meta-item">
+                    <span class="preview-meta-label">Creado</span>
+                    <span class="preview-meta-value">{{ contextView.file.createdAt }}</span>
+                  </div>
+                  <div class="preview-meta-item">
+                    <span class="preview-meta-label">Actualizado</span>
+                    <span class="preview-meta-value">{{ contextView.file.updatedAt }}</span>
+                  </div>
                 </div>
 
-                <h4 class="preview-block-heading">Introducción</h4>
-                <div class="preview-block">
-                  <p>El objetivo de este documento es proporcionar una guía clara para todos los usuarios, independientemente de su nivel de experiencia técnica.</p>
-                </div>
-
-                <h4 class="preview-block-heading">Contenido principal</h4>
-                <div class="preview-block">
-                  <p>A continuación se detallan los puntos clave que debes conocer para utilizar correctamente este recurso dentro de tu flujo de trabajo habitual.</p>
-                </div>
-
-                <div class="preview-block">
-                  <p>Para más información, consulta con el administrador del espacio o revisa los documentos relacionados en el mismo espacio de trabajo.</p>
-                </div>
+                <p class="preview-doc-note">El contenido del documento se edita desde Documentación.</p>
               </div>
             </div>
           }
@@ -416,7 +396,7 @@
       </div>
       <div class="modal-actions">
         <button class="modal-cancel-btn" (click)="closeCreateGroupModal()">Cancelar</button>
-        <button class="modal-confirm-btn" [disabled]="!newGroupName.trim()" (click)="confirmCreateGroup()">Crear grupo</button>
+        <button class="modal-confirm-btn" [disabled]="!newGroupName.trim() || busy" (click)="confirmCreateGroup()">Crear grupo</button>
       </div>
     </div>
   </div>
@@ -443,23 +423,16 @@
             <div class="modal-item-icon folder-clr"><app-icon name="folder" /></div>
             <div class="modal-item-info">
               <span class="modal-item-name">{{ space.name }}</span>
-              <span class="modal-item-sub">{{ space.fileCount }} documentos</span>
+              <span class="modal-item-sub">{{ space.pageCount }} documentos</span>
             </div>
             <div class="modal-checkbox" [class.checked]="space.selected"></div>
           </div>
         }
       </div>
       <div class="modal-footer">
-        <div class="modal-role-row">
-          <span class="modal-role-label">Acceso:</span>
-          <div class="role-toggle">
-            <button class="role-btn" [class.active]="pendingSpaceAccess === 'Reader'" (click)="pendingSpaceAccess = 'Reader'">Lector</button>
-            <button class="role-btn" [class.active]="pendingSpaceAccess === 'Editor'" (click)="pendingSpaceAccess = 'Editor'">Editor</button>
-          </div>
-        </div>
         <div class="modal-btn-row">
           <button class="modal-cancel-btn" (click)="closeAddSpaceModal()">Cancelar</button>
-          <button class="modal-confirm-btn" [disabled]="countSelected(allSpaces) === 0" (click)="confirmAddSpaces()">
+          <button class="modal-confirm-btn" [disabled]="countSelected(allSpaces) === 0 || busy" (click)="confirmAddSpaces()">
             Agregar{{ countSelected(allSpaces) > 0 ? ' (' + countSelected(allSpaces) + ')' : '' }}
           </button>
         </div>
@@ -489,23 +462,16 @@
             <div class="modal-item-icon doc-clr"><app-icon name="doc" /></div>
             <div class="modal-item-info">
               <span class="modal-item-name">{{ file.name }}</span>
-              <span class="modal-item-sub">{{ file.space ?? 'Sin espacio' }}</span>
+              <span class="modal-item-sub">{{ file.space }}</span>
             </div>
             <div class="modal-checkbox" [class.checked]="file.selected"></div>
           </div>
         }
       </div>
       <div class="modal-footer">
-        <div class="modal-role-row">
-          <span class="modal-role-label">Acceso:</span>
-          <div class="role-toggle">
-            <button class="role-btn" [class.active]="pendingFileAccess === 'Reader'" (click)="pendingFileAccess = 'Reader'">Lector</button>
-            <button class="role-btn" [class.active]="pendingFileAccess === 'Editor'" (click)="pendingFileAccess = 'Editor'">Editor</button>
-          </div>
-        </div>
         <div class="modal-btn-row">
           <button class="modal-cancel-btn" (click)="closeAddFileModal()">Cancelar</button>
-          <button class="modal-confirm-btn" [disabled]="countSelected(allFiles) === 0" (click)="confirmAddFiles()">
+          <button class="modal-confirm-btn" [disabled]="countSelected(allFiles) === 0 || busy" (click)="confirmAddFiles()">
             Agregar{{ countSelected(allFiles) > 0 ? ' (' + countSelected(allFiles) + ')' : '' }}
           </button>
         </div>
@@ -551,7 +517,7 @@
         </div>
         <div class="modal-btn-row">
           <button class="modal-cancel-btn" (click)="closeAddMemberModal()">Cancelar</button>
-          <button class="modal-confirm-btn" [disabled]="countSelected(allUsers) === 0" (click)="confirmAddMembers()">
+          <button class="modal-confirm-btn" [disabled]="countSelected(allUsers) === 0 || busy" (click)="confirmAddMembers()">
             Agregar{{ countSelected(allUsers) > 0 ? ' (' + countSelected(allUsers) + ')' : '' }}
           </button>
         </div>

@@ -1,0 +1,36 @@
+<div class="doc-search">
+  <button class="panel-toggle-inner" title="Buscar páginas" (click)="toggleOpen()">
+    <app-icon name="search" />
+  </button>
+
+  @if (open()) {
+    <div class="doc-search-panel">
+      <div class="doc-search-input-wrap">
+        <app-icon name="search" class="doc-search-input-icon" />
+        <input
+          type="text"
+          class="doc-search-input"
+          placeholder="Buscar en toda la organización..."
+          [ngModel]="query()"
+          (ngModelChange)="onQueryChange($event)"
+        />
+      </div>
+      @if (query().trim()) {
+        <div class="doc-search-results">
+          @if (searching()) {
+            <p class="doc-search-msg">Buscando...</p>
+          } @else if (results().length === 0) {
+            <p class="doc-search-msg">Sin resultados.</p>
+          } @else {
+            @for (page of results(); track page.id) {
+              <button type="button" class="doc-search-item" (click)="openResult(page)">
+                <app-icon name="doc" />
+                <span>{{ page.title }}</span>
+              </button>
+            }
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

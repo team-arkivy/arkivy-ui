@@ -30,6 +30,26 @@ app-documentation {
   margin: 0 auto;
 }
 
+/* ─── Encabezado de página (título + estado de guardado) ─── */
+.notion-page-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.notion-page-head .notion-title { flex: 1; }
+
+.save-status {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: rgba(200, 190, 255, 0.4);
+  font-family: var(--font-ui);
+  white-space: nowrap;
+}
+
+.save-status-ok { color: rgba(74, 222, 128, 0.7); }
+.save-status-error { color: rgba(248, 113, 113, 0.75); }
+
 /* ─── Title ─── */
 .notion-title {
   display: block;
@@ -151,6 +171,330 @@ app-documentation {
   background: rgba(139, 92, 246, 0.06);
 }
 
+/* ─── Estado vacío / carga / error de la página ─── */
+.doc-empty-state {
+  max-width: 720px;
+  margin: 60px auto 0;
+  font-size: 14px;
+  color: rgba(200, 190, 255, 0.32);
+  font-family: var(--font-ui);
+  text-align: center;
+}
+
+.doc-empty-state-error { color: rgba(248, 113, 113, 0.75); }
+
+/* ─── Bloque de código ─── */
+.doc-code-block {
+  flex: 1;
+  position: relative;
+  background: rgba(10, 8, 22, 0.55);
+  border: 1px solid rgba(139, 92, 246, 0.16);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 4px 0;
+}
+
+.doc-code-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.doc-code-lang-select {
+  background: rgba(14, 11, 28, 0.7);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 5px;
+  padding: 3px 6px;
+  color: rgba(167, 139, 250, 0.85);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-family: var(--font-ui);
+  outline: none;
+  cursor: pointer;
+}
+
+.doc-code-copy-btn {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: rgba(200, 190, 255, 0.4);
+  cursor: pointer;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.13s, color 0.13s;
+}
+
+.doc-code-copy-btn app-icon { width: 13px; height: 13px; }
+
+.doc-code-copy-btn:hover {
+  background: rgba(139, 92, 246, 0.14);
+  color: rgba(167, 139, 250, 0.9);
+}
+
+.doc-code-textarea {
+  display: block;
+  width: 100%;
+  margin: 0;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  background: transparent;
+  font-family: 'Courier New', monospace;
+  font-size: 13.5px;
+  color: rgba(200, 220, 255, 0.85);
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0;
+}
+
+.doc-code-textarea::placeholder { color: rgba(200, 190, 255, 0.2); }
+
+/* ─── Chip de archivo/enlace ─── */
+.doc-file-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0;
+}
+
+.doc-file-chip, .doc-link-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(109, 69, 212, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  font-size: 14px;
+  color: rgba(220, 215, 255, 0.85);
+  font-family: var(--font-ui);
+}
+
+.doc-link-chip { margin: 4px 0; flex: 1; }
+
+.doc-link-chip .doc-file-name { cursor: pointer; }
+.doc-link-chip .doc-file-name:hover { text-decoration: underline; }
+
+/* ─── Selector de enlace ─── */
+.doc-link-picker {
+  position: relative;
+  flex: 1;
+  margin: 4px 0;
+}
+
+.doc-link-picker-input {
+  width: 100%;
+  background: rgba(14, 11, 28, 0.7);
+  border: 1px dashed rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--clr-white);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.doc-link-picker-input:focus { border-color: rgba(139, 92, 246, 0.55); }
+.doc-link-picker-input::placeholder { color: rgba(200, 190, 255, 0.3); }
+
+.doc-link-picker-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(17, 13, 32, 0.98);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(109, 69, 212, 0.1);
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.doc-link-picker-item {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(220, 215, 255, 0.82);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.doc-link-picker-item:hover { background: rgba(109, 69, 212, 0.2); }
+
+.doc-link-picker-msg {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  color: rgba(200, 190, 255, 0.35);
+  font-family: var(--font-ui);
+}
+
+.doc-file-chip app-icon, .doc-link-chip app-icon {
+  width: 15px;
+  height: 15px;
+  color: rgba(167, 139, 250, 0.75);
+  flex-shrink: 0;
+}
+
+.doc-file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-file-chip-empty { color: rgba(200, 190, 255, 0.4); }
+
+.doc-file-action {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: rgba(200, 190, 255, 0.4);
+  cursor: pointer;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.13s, color 0.13s;
+}
+
+.doc-file-action app-icon { width: 13px; height: 13px; }
+
+.doc-file-action:hover {
+  background: rgba(139, 92, 246, 0.14);
+  color: rgba(167, 139, 250, 0.9);
+}
+
+.doc-file-action-danger:hover {
+  background: rgba(248, 113, 113, 0.14);
+  color: rgba(248, 113, 113, 0.85);
+}
+
+.doc-file-upload-label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+  font-size: 13px;
+  color: rgba(200, 190, 255, 0.5);
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background 0.13s, border-color 0.13s;
+}
+
+.doc-file-upload-label:hover {
+  background: rgba(139, 92, 246, 0.06);
+  border-color: rgba(139, 92, 246, 0.5);
+}
+
+.doc-file-upload-label app-icon {
+  width: 14px;
+  height: 14px;
+  color: rgba(167, 139, 250, 0.65);
+  flex-shrink: 0;
+}
+
+.doc-file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.doc-file-error {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(248, 113, 113, 0.8);
+  font-family: var(--font-ui);
+}
+
+/* ─── Agregar bloque ─── */
+.doc-add-block-wrap {
+  position: relative;
+  margin-top: 4px;
+}
+
+.doc-add-block-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(200, 190, 255, 0.35);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background 0.13s, color 0.13s;
+}
+
+.doc-add-block-btn app-icon { width: 12px; height: 12px; }
+
+.doc-add-block-btn:hover {
+  background: rgba(139, 92, 246, 0.08);
+  color: rgba(200, 190, 255, 0.7);
+}
+
+.doc-add-block-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 50;
+  background: rgba(17, 13, 32, 0.98);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(109, 69, 212, 0.1);
+  min-width: 160px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.doc-add-block-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(220, 215, 255, 0.82);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.doc-add-block-menu button:hover { background: rgba(109, 69, 212, 0.2); }
+
+.doc-add-block-menu app-icon { width: 13px; height: 13px; color: rgba(167, 139, 250, 0.65); }
+
 /* ─── Drop zone after last block ─── */
 .drop-after-last {
   min-height: 120px;
@@ -167,6 +511,211 @@ app-documentation {
   border-radius: 0;
   background: rgba(139, 92, 246, 0.7);
   pointer-events: none;
+}
+
+/* app-doc-toc/app-doc-breadcrumb no deben ser flex items propios — sus
+   plantillas (aside/nav) son las que participan del layout de dash-layout. */
+app-doc-toc, app-doc-breadcrumb {
+  display: contents;
+}
+
+.toc-state-msg {
+  font-size: 12.5px;
+  color: rgba(200, 190, 255, 0.35);
+  padding: 12px 16px;
+  margin: 0;
+  font-family: var(--font-ui);
+}
+
+.toc-state-error {
+  color: rgba(248, 113, 113, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.toc-dismiss-error {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 11px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.toc-state-empty { padding: 2px 16px 8px 20px; }
+
+/* ─── Encabezado del espacio (nombre + acciones) ─── */
+.toc-space-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 0 16px 14px;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.18);
+}
+
+.toc-space-edit-input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(14, 11, 28, 0.7);
+  border: 1px solid rgba(139, 92, 246, 0.45);
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: var(--clr-white);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  outline: none;
+}
+
+.toc-space-action {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: rgba(200, 190, 255, 0.3);
+  cursor: pointer;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.13s, color 0.13s;
+}
+
+.toc-space-action app-icon { width: 12px; height: 12px; }
+
+.toc-space-action:hover {
+  background: rgba(248, 113, 113, 0.14);
+  color: rgba(248, 113, 113, 0.85);
+}
+
+/* ─── Selector de espacio (varios espacios en la org) ─── */
+.toc-space-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 10px 16px 4px;
+}
+
+.toc-space-chip {
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(109, 69, 212, 0.08);
+  color: rgba(200, 190, 255, 0.5);
+  font-size: 11px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background 0.13s, color 0.13s, border-color 0.13s;
+}
+
+.toc-space-chip:hover { color: rgba(240, 235, 255, 0.85); }
+
+.toc-space-chip.active {
+  background: rgba(109, 69, 212, 0.3);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: rgba(240, 235, 255, 0.95);
+}
+
+/* ─── Formularios inline (crear espacio / crear página) ─── */
+.toc-inline-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+}
+
+.toc-inline-form--page { padding: 4px 16px 8px 20px; }
+
+.toc-inline-input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(14, 11, 28, 0.7);
+  border: 1px solid rgba(139, 92, 246, 0.32);
+  border-radius: 6px;
+  padding: 5px 8px;
+  color: var(--clr-white);
+  font-size: 12px;
+  font-family: var(--font-ui);
+  outline: none;
+}
+
+.toc-inline-input:focus { border-color: rgba(139, 92, 246, 0.6); }
+
+.toc-inline-confirm {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 5px;
+  background: rgba(109, 69, 212, 0.35);
+  color: rgba(200, 220, 255, 0.9);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toc-inline-confirm app-icon { width: 11px; height: 11px; }
+.toc-inline-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.toc-new-space-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px !important;
+  color: rgba(167, 139, 250, 0.7) !important;
+}
+
+.toc-new-space-btn .toc-icon { width: 11px; height: 11px; }
+
+/* ─── Fila de página (item + borrar) ─── */
+.toc-doc-row {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.toc-doc-row.drag-over::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 16px;
+  right: 16px;
+  height: 2px;
+  background: rgba(139, 92, 246, 0.7);
+}
+
+.toc-doc-row .toc-doc-item { flex: 1; min-width: 0; }
+
+.toc-doc-delete {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-right: 8px;
+  border: none;
+  background: transparent;
+  color: rgba(200, 190, 255, 0.18);
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.13s, background 0.13s, color 0.13s;
+}
+
+.toc-doc-row:hover .toc-doc-delete { opacity: 1; }
+
+.toc-doc-delete app-icon { width: 10px; height: 10px; }
+
+.toc-doc-delete:hover {
+  background: rgba(248, 113, 113, 0.14);
+  color: rgba(248, 113, 113, 0.82);
 }
 
 /* ─── Panel TOC (full height — vive en dash-layout) ─────── */
@@ -198,17 +747,112 @@ app-documentation {
 .toc-panel-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 10px 10px 4px 12px;
 }
 
+/* ─── Búsqueda global (RF-DOC-07) ─── */
+.doc-search {
+  position: relative;
+}
+
+.doc-search-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  width: 260px;
+  background: rgba(17, 13, 32, 0.98);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(109, 69, 212, 0.1);
+  padding: 10px;
+}
+
+.doc-search-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: rgba(14, 11, 28, 0.6);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+}
+
+.doc-search-input-icon {
+  width: 13px;
+  height: 13px;
+  color: rgba(200, 190, 255, 0.35);
+  flex-shrink: 0;
+}
+
+.doc-search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--clr-white);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  outline: none;
+}
+
+.doc-search-input::placeholder { color: rgba(200, 190, 255, 0.3); }
+
+.doc-search-results {
+  margin-top: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.doc-search-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(220, 215, 255, 0.82);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.doc-search-item:hover { background: rgba(109, 69, 212, 0.2); }
+
+.doc-search-item app-icon {
+  width: 12px;
+  height: 12px;
+  color: rgba(167, 139, 250, 0.65);
+  flex-shrink: 0;
+}
+
+.doc-search-msg {
+  margin: 6px 0 0;
+  padding: 4px 10px;
+  font-size: 12.5px;
+  color: rgba(200, 190, 255, 0.35);
+  font-family: var(--font-ui);
+}
+
 .toc-space-title {
+  flex: 1;
+  min-width: 0;
   font-size: 13.5px;
   font-weight: 600;
   color: var(--clr-white);
-  padding: 0 16px 14px;
   margin: 0;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.18);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-shadow: 0 0 14px rgba(167, 139, 250, 0.25);
+  cursor: default;
 }
 
 .toc-section {
@@ -226,32 +870,6 @@ app-documentation {
   font-size: 12.5px;
   font-weight: 600;
   color: rgba(240, 235, 255, 0.88);
-}
-
-.toc-info-btn {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  border: none;
-  background: transparent;
-  color: rgba(139, 92, 246, 0.65);
-  cursor: pointer;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: color 0.15s, background 0.15s;
-}
-
-.toc-info-btn:hover {
-  color: rgba(167, 139, 250, 1);
-  background: rgba(139, 92, 246, 0.15);
-}
-
-.toc-info-icon {
-  width: 13px;
-  height: 13px;
 }
 
 .toc-items {

@@ -37,12 +37,12 @@ export class SettingsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const claims = (this.authService.getUserInfo() as Record<string, string>) ?? {};
-    const nameParts = (claims['name'] ?? '').split(' ');
+    const user = this.authService.getUserInfo();
+    const nameParts = (user?.displayName ?? '').split(' ');
 
-    this.profile.firstName = claims['given_name'] ?? nameParts[0] ?? '';
-    this.profile.lastName = claims['family_name'] ?? nameParts.slice(1).join(' ') ?? '';
-    this.profile.email = claims['email'] ?? '';
+    this.profile.firstName = nameParts[0] ?? '';
+    this.profile.lastName = nameParts.slice(1).join(' ') ?? '';
+    this.profile.email = user?.loginName ?? '';
 
     if (isPlatformBrowser(this.platformId)) {
       this.profile.firstName = localStorage.getItem('arkivy_firstName') ?? this.profile.firstName;

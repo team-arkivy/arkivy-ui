@@ -1068,68 +1068,6 @@ app-groups {
   box-shadow: 0 0 10px rgba(124, 58, 237, 0.15);
 }
 
-/* ─── Menú "Mover a espacio" ──────────────────────────────────── */
-.move-wrap {
-  position: relative;
-}
-
-.move-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 200;
-  background: rgba(17, 13, 32, 0.98);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  border-radius: 12px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(109, 69, 212, 0.1);
-  min-width: 190px;
-  padding: 6px;
-  animation: cardIn 0.18s cubic-bezier(.22, 1, .36, 1) both;
-}
-
-.move-menu-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: rgba(200, 190, 255, 0.35);
-  font-family: var(--font-ui);
-  padding: 4px 10px 6px;
-  margin: 0;
-}
-
-.move-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 8px 10px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: rgba(220, 215, 255, 0.82);
-  font-size: 13.5px;
-  font-family: var(--font-ui);
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.12s;
-}
-
-.move-menu-item:hover { background: rgba(109, 69, 212, 0.2); }
-
-.move-menu-icon { width: 13px; height: 13px; color: rgba(167, 139, 250, 0.65); }
-
-.move-menu-empty {
-  font-size: 12.5px;
-  color: rgba(200, 190, 255, 0.3);
-  padding: 8px 10px;
-  margin: 0;
-  font-family: var(--font-ui);
-}
-
-/* Badge "Sin espacio" en archivos sueltos */
-.item-sub.loose { color: rgba(200, 190, 255, 0.24); }
-
 /* ─── Espacios expandidos (maximizar) ────────────────────────── */
 .tab-body--split.spaces-expanded {
   grid-template-columns: 1fr;
@@ -1367,4 +1305,72 @@ app-groups {
   color: rgba(200, 190, 255, 0.58);
   font-family: var(--font-ui);
   line-height: 1.6;
+}
+
+/* ─── Metadatos reales de la página (categoría, estado, autor, fechas) ── */
+.preview-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.preview-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(109, 69, 212, 0.06);
+  border: 1px solid rgba(139, 92, 246, 0.14);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.preview-meta-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(200, 190, 255, 0.4);
+  font-family: var(--font-ui);
+}
+
+.preview-meta-value {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: rgba(220, 215, 255, 0.85);
+  font-family: var(--font-ui);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preview-doc-note {
+  font-size: 12.5px;
+  color: rgba(200, 190, 255, 0.32);
+  font-family: var(--font-ui);
+  margin: 4px 0 0;
+  font-style: italic;
+}
+
+/* ─── Banner de error de una acción (crear/agregar/renombrar/etc.) ────── */
+.action-error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 14px 28px 0;
+  padding: 10px 14px;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.32);
+  border-radius: 10px;
+  color: rgba(252, 165, 165, 0.92);
+  font-size: 13px;
+  font-family: var(--font-ui);
+}
+
+/* ─── Estado de carga / error inicial en el panel de grupos ──────────── */
+.panel-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }

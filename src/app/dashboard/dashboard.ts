@@ -11,8 +11,10 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { IconComponent } from '../shared/icon/icon.component';
-import { DocumentationService } from '../shared/documentation.service';
+import { ContentService } from '../shared/content.service';
 import { AuthService } from '../shared/auth.service';
+import { DocTocComponent } from './documentation/doc-toc/doc-toc';
+import { DocBreadcrumbComponent } from './documentation/doc-breadcrumb/doc-breadcrumb';
 
 interface UserClaims {
   name?: string;
@@ -32,7 +34,7 @@ interface NetworkNode {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, IconComponent],
+  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, IconComponent, DocTocComponent, DocBreadcrumbComponent],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css'],
 })
@@ -93,7 +95,7 @@ export class DashboardComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: object,
-    public docService: DocumentationService,
+    public content: ContentService,
     public authService: AuthService,
     private router: Router,
   ) {}

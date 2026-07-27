@@ -1,62 +1,34 @@
 <div class="doc-layout">
   <main class="doc-content">
-
-    <div class="notion-page">
-
-      <!-- Title -->
-      <textarea
-        #titleRef
-        class="notion-title"
-        rows="1"
-        placeholder="Nuevo titulo"
-        [value]="page().title"
-        (input)="onTitleInput($event)"
-        (keydown)="onTitleKeydown($event)"
-        (dragover)="onDragOverTitle($event)"
-        (drop)="onDrop($event)"
-      ></textarea>
-
-      <!-- Blocks -->
-      <div class="notion-blocks">
-        @for (block of page().blocks; track trackById($index, block); let i = $index) {
-          <div
-            class="notion-block-row"
-            [class.is-dragging]="draggingIdx === i"
-            [class.drag-over]="dragOverIdx === i"
-            draggable="true"
-            (dragstart)="onDragStart($event, i)"
-            (dragover)="onDragOver($event, i)"
-            (drop)="onDrop($event)"
-            (dragend)="onDragEnd()"
-          >
-            <div class="drag-handle" title="Mover">
-              <span></span><span></span><span></span>
-              <span></span><span></span><span></span>
-            </div>
-            <textarea
-              #blockRef
-              class="notion-block"
-              rows="1"
-              [attr.data-block-id]="block.id"
-              [value]="block.content"
-              placeholder="Escribe algo..."
-              (input)="onBlockInput($event, block.id)"
-              (keydown)="onBlockKeydown($event, block)"
-              draggable="false"
-            ></textarea>
-          </div>
+    @if (!pageId) {
+      <p class="doc-empty-state">Selecciona una página del panel para verla aquí.</p>
+    } @else if (content.pageLoading()) {
+      <p class="doc-empty-state">Cargando página...</p>
+    } @else if (content.pageError()) {
+      <p class="doc-empty-state doc-empty-state-error">{{ content.pageError() }}</p>
+    } @else if (content.currentPage(); as page) {
+      <div class="notion-page">
+        <div class="notion-page-head">
+          <textarea
+            #titleRef
+            class="notion-title"
+            rows="1"
+            placeholder="Nuevo título"
+            [value]="page.title"
+            (keydown)="onTitleKeydown($event)"
+            (blur)="onTitleBlur($event)"
+          ></textarea>
+          @switch (content.saveStatus()) {
+            @case ('saving') { <span class="save-status">Guardando…</span> }
+            @case ('saved') { <span class="save-status save-status-ok">Guardado</span> }
+            @case ('error') { <span class="save-status save-status-error">Error al guardar</span> }
+          }
+        </div>
+        @if (titleError()) {
+          <p class="save-status save-status-error">{{ titleError() }}</p>
         }
-
-        <!-- Zona de drop después del último bloque -->
-        <div
-          class="drop-after-last"
-          [class.active]="dragOverIdx === page().blocks.length && draggingIdx !== null"
-          (dragover)="onDragOverEnd($event)"
-          (drop)="onDrop($event)"
-        ></div>
+        <app-doc-block-list [blocks]="content.currentBlocks()" />
       </div>
-
-    </div>
-
+    }
   </main>
 </div>

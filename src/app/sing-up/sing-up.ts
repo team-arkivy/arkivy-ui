@@ -109,7 +109,8 @@ export class SingUp implements AfterViewInit, OnDestroy {
   }
 
   registerWithGoogle(): void {
-    console.log('Register with Google');
+    // Same Zitadel IDP flow as login — a new user is created on first sign-in.
+    this.authService.loginWithGoogle();
   }
 
   private triggerShake(): void {
