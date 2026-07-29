@@ -1,62 +1,114 @@
 <div class="doc-layout">
   <main class="doc-content">
-
-    <div class="notion-page">
-
-      <!-- Title -->
-      <textarea
-        #titleRef
-        class="notion-title"
-        rows="1"
-        placeholder="Nuevo titulo"
-        [value]="page().title"
-        (input)="onTitleInput($event)"
-        (keydown)="onTitleKeydown($event)"
-        (dragover)="onDragOverTitle($event)"
-        (drop)="onDrop($event)"
-      ></textarea>
-
-      <!-- Blocks -->
-      <div class="notion-blocks">
-        @for (block of page().blocks; track trackById($index, block); let i = $index) {
-          <div
-            class="notion-block-row"
-            [class.is-dragging]="draggingIdx === i"
-            [class.drag-over]="dragOverIdx === i"
-            draggable="true"
-            (dragstart)="onDragStart($event, i)"
-            (dragover)="onDragOver($event, i)"
-            (drop)="onDrop($event)"
-            (dragend)="onDragEnd()"
-          >
-            <div class="drag-handle" title="Mover">
-              <span></span><span></span><span></span>
-              <span></span><span></span><span></span>
-            </div>
-            <textarea
-              #blockRef
-              class="notion-block"
-              rows="1"
-              [attr.data-block-id]="block.id"
-              [value]="block.content"
-              placeholder="Escribe algo..."
-              (input)="onBlockInput($event, block.id)"
-              (keydown)="onBlockKeydown($event, block)"
-              draggable="false"
-            ></textarea>
-          </div>
+    @if (!pageId) {
+      <p class="doc-empty-state">Selecciona una página del panel para verla aquí.</p>
+    } @else if (content.pageLoading()) {
+      <p class="doc-empty-state">Cargando página...</p>
+    } @else if (content.pageError()) {
+      <p class="doc-empty-state doc-empty-state-error">{{ content.pageError() }}</p>
+    } @else if (content.currentPage(); as page) {
+      <div class="notion-page">
+        <div class="notion-page-head">
+          <textarea
+            #titleRef
+            class="notion-title"
+            rows="1"
+            placeholder="Nuevo título"
+            [value]="page.title"
+            (keydown)="onTitleKeydown($event)"
+            (blur)="onTitleBlur($event)"
+          ></textarea>
+          @switch (content.saveStatus()) {
+            @case ('saving') { <span class="save-status">Guardando…</span> }
+            @case ('saved') { <span class="save-status save-status-ok">Guardado</span> }
+            @case ('error') { <span class="save-status save-status-error">Error al guardar</span> }
+          }
+        </div>
+        @if (titleError()) {
+          <p class="save-status save-status-error">{{ titleError() }}</p>
         }
 
-        <!-- Zona de drop después del último bloque -->
-        <div
-          class="drop-after-last"
-          [class.active]="dragOverIdx === page().blocks.length && draggingIdx !== null"
-          (dragover)="onDragOverEnd($event)"
-          (drop)="onDrop($event)"
-        ></div>
+        <div class="doc-flow-bar">
+          <span class="page-status-badge" [class]="statusClass[page.status]">{{ statusLabel[page.status] }}</span>
+
+          @if (canSubmitForReview) {
+            <div class="doc-flow-action">
+              <button type="button" class="doc-flow-btn" (click)="openReviewerPicker()">
+                <app-icon name="send" /> Enviar a revisión
+              </button>
+              @if (showReviewerPicker) {
+                <div class="doc-flow-popover">
+                  <label class="doc-flow-popover-label">Elegir revisor</label>
+                  <select class="doc-flow-select" [(ngModel)]="selectedReviewerId">
+                    <option value="" disabled>Seleccionar...</option>
+                    @for (editor of content.spaceEditors(); track editor.id) {
+                      <option [value]="editor.id">{{ editor.name }}</option>
+                    }
+                  </select>
+                  @if (content.spaceEditorsLoading()) {
+                    <p class="doc-flow-msg">Cargando editores...</p>
+                  } @else if (content.spaceEditors().length === 0) {
+                    <p class="doc-flow-msg">No hay otros Editores con acceso a este Espacio todavía.</p>
+                  }
+                  <div class="doc-flow-popover-actions">
+                    <button type="button" class="doc-flow-btn-secondary" (click)="cancelReviewerPicker()">Cancelar</button>
+                    <button type="button" class="doc-flow-btn" [disabled]="!selectedReviewerId || flowBusy()" (click)="confirmSubmitForReview()">Confirmar</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          @if (canReview) {
+            <button type="button" class="doc-flow-btn doc-flow-btn-approve" [disabled]="flowBusy()" (click)="approve()">
+              <app-icon name="check" /> Aprobar
+            </button>
+            <div class="doc-flow-action">
+              <button type="button" class="doc-flow-btn doc-flow-btn-reject" (click)="openRejectForm()">
+                <app-icon name="x-circle" /> Rechazar
+              </button>
+              @if (showRejectForm) {
+                <div class="doc-flow-popover">
+                  <label class="doc-flow-popover-label">Motivo del rechazo</label>
+                  <textarea class="doc-flow-textarea" rows="3" [(ngModel)]="rejectComment" placeholder="Explicá qué falta corregir..."></textarea>
+                  <div class="doc-flow-popover-actions">
+                    <button type="button" class="doc-flow-btn-secondary" (click)="cancelRejectForm()">Cancelar</button>
+                    <button type="button" class="doc-flow-btn doc-flow-btn-reject" [disabled]="!rejectComment.trim() || flowBusy()" (click)="confirmReject()">Rechazar</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="doc-flow-action doc-flow-history">
+            <button type="button" class="doc-flow-btn-secondary" (click)="toggleHistory()">
+              <app-icon name="history" /> Historial
+            </button>
+            @if (showHistory) {
+              <app-doc-version-history (close)="toggleHistory()" />
+            }
+          </div>
+        </div>
+        @if (flowError()) {
+          <p class="save-status save-status-error">{{ flowError() }}</p>
+        }
+
+        <app-doc-block-list [blocks]="content.currentBlocks()" />
+
+        @if (content.backlinks().length > 0) {
+          <div class="doc-backlinks">
+            <p class="doc-backlinks-title">Referenciada desde</p>
+            <div class="doc-backlinks-list">
+              @for (source of content.backlinks(); track source.id) {
+                <button type="button" class="doc-backlink-chip" (click)="openBacklink(source.id)">
+                  <app-icon name="link" />
+                  <span>{{ source.title }}</span>
+                </button>
+              }
+            </div>
+          </div>
+        }
       </div>
-
-    </div>
-
+    }
   </main>
 </div>

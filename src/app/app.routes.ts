@@ -34,6 +34,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'documentation/:pageId',
+        loadComponent: () =>
+          import('./dashboard/documentation/documentation').then(
+            (m) => m.DocumentationComponent,
+          ),
+      },
+      {
         path: 'users',
         canActivate: [roleGuard('sys-admin', 'plat-admin')],
         loadComponent: () =>
@@ -43,6 +50,11 @@ export const routes: Routes = [
         path: 'groups',
         loadComponent: () =>
           import('./dashboard/groups/groups').then((m) => m.GroupsComponent),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./dashboard/settings/settings').then((m) => m.SettingsComponent),
       },
     ],
   },

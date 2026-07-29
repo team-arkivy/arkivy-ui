@@ -52,13 +52,6 @@ app-users {
   box-shadow: 0 0 8px rgba(109, 69, 212, 0.8);
 }
 
-.filter-inputs {
-  display: flex;
-  gap: 8px;
-  flex: 1;
-  flex-wrap: wrap;
-}
-
 .search-field {
   display: flex;
   align-items: center;
@@ -69,9 +62,8 @@ app-users {
   border: 1px solid rgba(139, 92, 246, 0.22);
   border-radius: 20px;
   padding: 6px 13px;
-  min-width: 128px;
   flex: 1;
-  max-width: 175px;
+  max-width: 340px;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
@@ -250,6 +242,101 @@ app-users {
   text-shadow: 0 0 8px rgba(34, 197, 94, 0.45);
 }
 
+/* ─── Badge de rol combinado (RF-USR-06) ─────────────────── */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(200, 190, 255, 0.6);
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.role-badge.role-admin {
+  color: rgba(196, 165, 255, 0.95);
+  background: rgba(139, 92, 246, 0.22);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+/* ─── Banner de error ─────────────────────────────────────── */
+.users-error-banner {
+  margin: 0 0 12px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  color: rgba(254, 202, 202, 0.9);
+  font-size: 13px;
+  font-family: var(--font-ui);
+}
+
+/* ─── Invitaciones pendientes (RF-USR-02, RF-AUTH-06) ────── */
+.pending-invitations {
+  margin: 0 0 16px;
+}
+
+.pending-invitations-title {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(200, 190, 255, 0.4);
+  font-family: var(--font-ui);
+}
+
+.pending-invitations-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pending-invitation-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  color: rgba(253, 230, 138, 0.9);
+  font-size: 12.5px;
+  font-family: var(--font-ui);
+}
+
+.pending-invitation-chip app-icon {
+  width: 12px;
+  height: 12px;
+  color: rgba(251, 191, 36, 0.7);
+}
+
+.pending-invitation-revoke {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(253, 230, 138, 0.6);
+  cursor: pointer;
+}
+.pending-invitation-revoke:hover { background: rgba(251, 191, 36, 0.18); }
+.pending-invitation-revoke app-icon { width: 10px; height: 10px; }
+
+.invite-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: rgba(200, 190, 255, 0.4);
+  font-family: var(--font-ui);
+  line-height: 1.5;
+}
+
 /* ─── Botón de acción por fila ───────────────────────────── */
 .row-action-btn {
   width: 28px;
@@ -342,3 +429,273 @@ app-users {
 }
 
 .page-size-btn app-icon { width: 13px; height: 13px; }
+
+/* ─── Empty state ─────────────────────────────────────────── */
+.empty-row {
+  text-align: center;
+  padding: 48px 16px;
+  color: rgba(200, 190, 255, 0.3);
+  font-size: 14px;
+}
+
+/* ─── Row dropdown menu ──────────────────────────────────── */
+.row-menu-wrap {
+  position: relative;
+}
+
+.row-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  background: rgba(18, 14, 36, 0.97);
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  border-radius: 8px;
+  min-width: 130px;
+  padding: 4px;
+  z-index: 100;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(139, 92, 246, 0.1);
+  animation: ddIn 0.12s ease both;
+}
+
+@keyframes ddIn {
+  from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.row-dd-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: var(--font-ui);
+  color: rgba(200, 190, 255, 0.7);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  text-align: left;
+}
+
+.row-dd-item:hover {
+  background: rgba(139, 92, 246, 0.14);
+  color: rgba(240, 235, 255, 0.95);
+}
+
+.row-dd-item.danger { color: rgba(248, 113, 113, 0.75); }
+.row-dd-item.danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: rgba(252, 165, 165, 0.95);
+}
+
+.dd-icon { width: 14px; height: 14px; }
+
+/* ─── Modal overlay ──────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 3, 12, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  animation: fadeIn 0.15s ease both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal-card {
+  background: rgba(14, 11, 28, 0.96);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 14px;
+  width: 440px;
+  max-width: calc(100vw - 32px);
+  box-shadow:
+    0 0 60px rgba(124, 58, 237, 0.2),
+    0 24px 48px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  animation: slideUp 0.18s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─── Modal sections ─────────────────────────────────────── */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(240, 235, 255, 0.92);
+  font-family: var(--font-display);
+  margin: 0;
+}
+
+.modal-close {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: transparent;
+  color: rgba(200, 190, 255, 0.4);
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+}
+
+.modal-close:hover {
+  background: rgba(139, 92, 246, 0.14);
+  color: rgba(240, 235, 255, 0.9);
+}
+
+.modal-close app-icon { width: 16px; height: 16px; }
+
+.modal-body {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 22px 20px;
+  border-top: 1px solid rgba(139, 92, 246, 0.12);
+}
+
+/* ─── Form fields ────────────────────────────────────────── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(200, 190, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.required { color: rgba(167, 139, 250, 0.7); }
+
+.form-input {
+  background: rgba(20, 16, 40, 0.7);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 8px;
+  padding: 9px 13px;
+  color: rgba(240, 235, 255, 0.88);
+  font-size: 13.5px;
+  font-family: var(--font-ui);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-input::placeholder { color: rgba(200, 190, 255, 0.28); }
+
+.form-input:focus {
+  border-color: rgba(139, 92, 246, 0.6);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+/* ─── Status toggle ──────────────────────────────────────── */
+.toggle-row {
+  display: flex;
+  gap: 8px;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 8px 0;
+  border: 1px solid rgba(139, 92, 246, 0.22);
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(200, 190, 255, 0.45);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background 0.13s, border-color 0.13s, color 0.13s;
+}
+
+.toggle-btn.selected {
+  background: rgba(109, 69, 212, 0.25);
+  border-color: rgba(139, 92, 246, 0.6);
+  color: rgba(220, 210, 255, 0.95);
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.18);
+}
+
+/* ─── Error ──────────────────────────────────────────────── */
+.form-error {
+  font-size: 12.5px;
+  color: rgba(252, 165, 165, 0.85);
+  margin: 0;
+  padding: 8px 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 7px;
+}
+
+/* ─── Modal action buttons ───────────────────────────────── */
+.btn-cancel {
+  padding: 8px 18px;
+  border: 1px solid rgba(139, 92, 246, 0.22);
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(200, 190, 255, 0.6);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.btn-cancel:hover {
+  background: rgba(139, 92, 246, 0.1);
+  color: rgba(240, 235, 255, 0.85);
+}
+
+.btn-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  background: rgba(109, 69, 212, 0.28);
+  border: 1px solid rgba(139, 92, 246, 0.55);
+  border-radius: 7px;
+  color: rgba(220, 210, 255, 0.95);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.btn-confirm:hover {
+  background: rgba(109, 69, 212, 0.45);
+  border-color: rgba(167, 139, 250, 0.75);
+  box-shadow: 0 0 18px rgba(124, 58, 237, 0.28);
+  color: #fff;
+}
+
+.btn-confirm app-icon { width: 14px; height: 14px; }

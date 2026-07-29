@@ -1,0 +1,11 @@
+<nav class="breadcrumb" aria-label="breadcrumb">
+  <span class="breadcrumb-item">Documentation</span>
+  @if (content.selectedSpace(); as space) {
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-item">{{ space.name }}</span>
+  }
+  @if (content.currentPage(); as page) {
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-item breadcrumb-current">{{ page.title }}</span>
+  }
+</nav>

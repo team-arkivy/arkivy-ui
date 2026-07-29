@@ -1,151 +1,185 @@
 import {
-  Component, inject, computed, ElementRef, ViewChildren, ViewChild,
-  QueryList, AfterViewChecked
+  AfterViewChecked, Component, ElementRef, Input, OnChanges, OnDestroy, ViewChild, inject, signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DocumentationService, DocBlock } from '../../shared/documentation.service';
+import { Router } from '@angular/router';
+import { ContentService } from '../../shared/content.service';
+import { AuthService } from '../../shared/auth.service';
+import { IconComponent } from '../../shared/icon/icon.component';
+import { PAGE_STATUS_CLASS, PAGE_STATUS_LABEL } from '../../shared/page-status';
+import { DocBlockListComponent } from './doc-block-list/doc-block-list';
+import { DocVersionHistoryComponent } from './doc-version-history/doc-version-history';
 
 @Component({
   selector: 'app-documentation',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IconComponent, DocBlockListComponent, DocVersionHistoryComponent],
   templateUrl: './documentation.html',
   styleUrls: ['./documentation.css'],
 })
-export class DocumentationComponent implements AfterViewChecked {
-  docService = inject(DocumentationService);
-  private pendingFocusId: string | null = null;
-  private pendingFocusEnd = false;
+export class DocumentationComponent implements OnChanges, OnDestroy, AfterViewChecked {
+  @Input() pageId?: string;
+  content = inject(ContentService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
-  @ViewChildren('blockRef') blockRefs!: QueryList<ElementRef<HTMLTextAreaElement>>;
-  @ViewChild('titleRef') titleRef!: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('titleRef') private titleRef?: ElementRef<HTMLTextAreaElement>;
 
-  // Suscribe al WritableSignal<DocPage> del servicio para que moveBlock dispare re-render
-  page = computed(() => this.docService.getPageSignal(this.docService.selectedDoc())());
+  readonly statusLabel = PAGE_STATUS_LABEL;
+  readonly statusClass = PAGE_STATUS_CLASS;
 
-  draggingIdx: number | null = null;
-  dragOverIdx: number | null = null;
+  /** Signals, not plain properties: written from .subscribe() callbacks in a zoneless app — see ContentService's doc comment. */
+  readonly titleError = signal('');
+  readonly flowError = signal('');
+  readonly flowBusy = signal(false);
 
-  ngAfterViewChecked(): void {
-    if (this.pendingFocusId) {
-      const id = this.pendingFocusId;
-      const end = this.pendingFocusEnd;
-      this.pendingFocusId = null;
-      this.pendingFocusEnd = false;
-      const ref = this.blockRefs.find(r => r.nativeElement.dataset['blockId'] === id);
-      if (ref) {
-        ref.nativeElement.focus();
-        if (end) {
-          const len = ref.nativeElement.value.length;
-          ref.nativeElement.setSelectionRange(len, len);
-        } else {
-          ref.nativeElement.setSelectionRange(0, 0);
-        }
-      }
+  // Toggled only from template-bound clicks — plain properties are fine here.
+  showReviewerPicker = false;
+  selectedReviewerId = '';
+  showRejectForm = false;
+  rejectComment = '';
+  showHistory = false;
+
+  ngOnChanges(): void {
+    if (this.pageId) {
+      this.content.selectPage(this.pageId);
+      this.showReviewerPicker = false;
+      this.showRejectForm = false;
+      this.showHistory = false;
+      this.flowError.set('');
     }
   }
 
-  onTitleInput(event: Event): void {
-    const ta = event.target as HTMLTextAreaElement;
-    this.docService.updateTitle(this.docService.selectedDoc(), ta.value);
-    this.autoResize(ta);
+  ngAfterViewChecked(): void {
+    const el = this.titleRef?.nativeElement;
+    if (el) {
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.content.flushPendingSave();
   }
 
   onTitleKeydown(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
       event.preventDefault();
+      (event.target as HTMLTextAreaElement).blur();
     }
   }
 
-  onBlockInput(event: Event, blockId: string): void {
-    const val = (event.target as HTMLTextAreaElement).value;
-    this.docService.updateBlock(this.docService.selectedDoc(), blockId, val);
-    this.autoResize(event.target as HTMLTextAreaElement);
+  onTitleBlur(event: Event): void {
+    const pageId = this.content.currentPage()?.id;
+    if (!pageId) return;
+    const title = (event.target as HTMLTextAreaElement).value.trim();
+    if (!title || title === this.content.currentPage()?.title) return;
+    this.titleError.set('');
+    this.content.renamePage(pageId, title).subscribe({
+      error: () => this.titleError.set('No se pudo renombrar la página.'),
+    });
   }
 
-  onBlockKeydown(event: KeyboardEvent, block: DocBlock): void {
-    const doc = this.docService.selectedDoc();
-    const ta = event.target as HTMLTextAreaElement;
+  // ═══════════════════════════════════════════════════════════════════════
+  // FLUJO DE REVISIÓN (RF-FLOW)
+  // ═══════════════════════════════════════════════════════════════════════
 
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      const caretPos = ta.selectionStart;
-      const before = ta.value.slice(0, caretPos);
-      const after = ta.value.slice(caretPos);
-      this.docService.updateBlock(doc, block.id, before);
-      const newId = this.docService.insertBlockAfter(doc, block.id);
-      if (after) this.docService.updateBlock(doc, newId, after);
-      this.pendingFocusId = newId;
-      this.pendingFocusEnd = false;
-    } else if (event.key === 'Backspace' && ta.selectionStart === 0 && ta.selectionEnd === 0) {
-      const page = this.docService.getPage(doc);
-      if (page.blocks.length > 1) {
-        event.preventDefault();
-        const prevId = this.docService.deleteBlock(doc, block.id);
-        if (prevId) {
-          this.pendingFocusId = prevId;
-          this.pendingFocusEnd = true;
-        }
-      }
-    }
+  private get currentUserId(): string | undefined {
+    return this.authService.getUserInfo()?.userId;
   }
 
-  autoResize(ta: HTMLTextAreaElement): void {
-    ta.style.height = 'auto';
-    ta.style.height = ta.scrollHeight + 'px';
+  get isPlatformAdmin(): boolean {
+    return !!this.authService.getUserInfo()?.isPlatformAdmin;
   }
 
-  // --- Drag & Drop ---
-
-  onDragStart(event: DragEvent, idx: number): void {
-    this.draggingIdx = idx;
-    if (event.dataTransfer) {
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', String(idx));
-    }
+  get isAuthor(): boolean {
+    return this.content.currentPage()?.authorId === this.currentUserId;
   }
 
-  onDragOver(event: DragEvent, idx: number): void {
-    event.preventDefault();
-    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-    const el = event.currentTarget as HTMLElement;
-    const rect = el.getBoundingClientRect();
-    this.dragOverIdx = event.clientY <= rect.top + rect.height / 2 ? idx : idx + 1;
+  get isReviewer(): boolean {
+    const page = this.content.currentPage();
+    return !!page?.reviewerId && page.reviewerId === this.currentUserId;
   }
 
-  onDragOverTitle(event: DragEvent): void {
-    event.preventDefault();
-    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-    this.dragOverIdx = 0;
+  get canSubmitForReview(): boolean {
+    return this.content.currentPage()?.status === 'draft' && (this.isAuthor || this.isPlatformAdmin);
   }
 
-  onDragOverEnd(event: DragEvent): void {
-    event.preventDefault();
-    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-    this.dragOverIdx = this.page().blocks.length;
+  get canReview(): boolean {
+    return this.content.currentPage()?.status === 'in_review' && (this.isReviewer || this.isPlatformAdmin);
   }
 
-  onDrop(event: DragEvent): void {
-    event.preventDefault();
-    if (this.draggingIdx !== null && this.dragOverIdx !== null) {
-      const from = this.draggingIdx;
-      const gap = this.dragOverIdx;
-      if (gap !== from && gap !== from + 1) {
-        const actualTo = gap <= from ? gap : gap - 1;
-        this.docService.moveBlock(this.docService.selectedDoc(), from, actualTo);
-      }
-    }
-    this.draggingIdx = null;
-    this.dragOverIdx = null;
+  openReviewerPicker(): void {
+    this.selectedReviewerId = '';
+    this.flowError.set('');
+    this.showReviewerPicker = true;
+    this.content.loadSpaceEditors();
   }
 
-  onDragEnd(): void {
-    this.draggingIdx = null;
-    this.dragOverIdx = null;
+  cancelReviewerPicker(): void {
+    this.showReviewerPicker = false;
   }
 
-  trackById(_: number, b: DocBlock): string {
-    return b.id;
+  confirmSubmitForReview(): void {
+    if (!this.selectedReviewerId) return;
+    this.flowBusy.set(true);
+    this.content.submitForReview(this.selectedReviewerId).subscribe({
+      next: () => {
+        this.flowBusy.set(false);
+        this.showReviewerPicker = false;
+      },
+      error: () => {
+        this.flowBusy.set(false);
+        this.flowError.set('No se pudo enviar la página a revisión.');
+      },
+    });
+  }
+
+  approve(): void {
+    this.flowBusy.set(true);
+    this.flowError.set('');
+    this.content.approvePage().subscribe({
+      next: () => this.flowBusy.set(false),
+      error: () => {
+        this.flowBusy.set(false);
+        this.flowError.set('No se pudo aprobar la página.');
+      },
+    });
+  }
+
+  openRejectForm(): void {
+    this.rejectComment = '';
+    this.flowError.set('');
+    this.showRejectForm = true;
+  }
+
+  cancelRejectForm(): void {
+    this.showRejectForm = false;
+  }
+
+  confirmReject(): void {
+    const comment = this.rejectComment.trim();
+    if (!comment) return;
+    this.flowBusy.set(true);
+    this.content.rejectPage(comment).subscribe({
+      next: () => {
+        this.flowBusy.set(false);
+        this.showRejectForm = false;
+      },
+      error: () => {
+        this.flowBusy.set(false);
+        this.flowError.set('No se pudo rechazar la página.');
+      },
+    });
+  }
+
+  toggleHistory(): void {
+    this.showHistory = !this.showHistory;
+    if (this.showHistory) this.content.loadVersions();
+  }
+
+  openBacklink(pageId: string): void {
+    void this.router.navigate(['/dashboard/documentation', pageId]);
   }
 }

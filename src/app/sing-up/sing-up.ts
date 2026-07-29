@@ -10,6 +10,7 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../shared/auth.service';
 
 interface RegisterCredentials {
   username: string;
@@ -51,6 +52,7 @@ export class SingUp implements AfterViewInit, OnDestroy {
 
   constructor(
     private router: Router,
+    private authService: AuthService,
     @Inject(PLATFORM_ID) private platformId: object,
   ) {}
 
@@ -85,10 +87,17 @@ export class SingUp implements AfterViewInit, OnDestroy {
     this.isLoading = true;
     this.registerError = '';
 
-    setTimeout(() => {
-      this.isLoading = false;
-      void this.router.navigate(['/login']);
-    }, 1800);
+    this.authService.register({ username: this.credentials.username, password: this.credentials.password }).subscribe({
+      next: () => {
+        this.isLoading = false;
+        void this.router.navigate(['/login']);
+      },
+      error: (err: { error?: { message?: string } }) => {
+        this.isLoading = false;
+        this.registerError = err?.error?.message ?? 'Error al crear la cuenta';
+        this.triggerShake();
+      },
+    });
   }
 
   togglePassword(): void {
@@ -100,7 +109,8 @@ export class SingUp implements AfterViewInit, OnDestroy {
   }
 
   registerWithGoogle(): void {
-    console.log('Register with Google');
+    // Same Zitadel IDP flow as login — a new user is created on first sign-in.
+    this.authService.loginWithGoogle();
   }
 
   private triggerShake(): void {

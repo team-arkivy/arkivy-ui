@@ -1,72 +1,143 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { OAuthService, AuthConfig } from 'angular-oauth2-oidc';
-import { Router } from '@angular/router';
-
-const authConfig: AuthConfig = {
-  issuer: 'https://dev-arkivy-ybl40k.us1.zitadel.cloud',
-  redirectUri: 'http://localhost:4200/auth/callback',
-  postLogoutRedirectUri: 'http://localhost:4200',
-  clientId: '371694118679670659',
-  responseType: 'code',
-  scope: 'openid profile email urn:zitadel:iam:org:project:id:zitadel:aud',
-  showDebugInformation: true,
-  requireHttps: false, // solo para desarrollo
-};
+import { Observable, tap } from 'rxjs';
+import {
+  ApiService,
+  LoginRequest,
+  RegisterRequest,
+  SessionResponse,
+  MeResponse,
+} from './api.service';
+import { SESSION_ID_KEY, SESSION_TOKEN_KEY } from './interceptors/auth.interceptor';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  readonly currentUser = signal<MeResponse | null>(null);
+
   constructor(
-    private oauthService: OAuthService,
-    private router: Router,
+    private apiService: ApiService,
     @Inject(PLATFORM_ID) private platformId: object,
   ) {
-    this.configure();
-  }
-
-  private configure(): void {
-    this.oauthService.configure(authConfig);
-    if (isPlatformBrowser(this.platformId)) {
-      this.oauthService.loadDiscoveryDocumentAndTryLogin().then(() => {
-        if (this.oauthService.hasValidAccessToken()) {
-          void this.router.navigate(['/dashboard']);
-        }
-      });
+    if (isPlatformBrowser(this.platformId) && this.hasStoredSession()) {
+      this.refreshCurrentUser();
     }
   }
 
-  login(): void {
-    this.oauthService.initCodeFlow();
+  private hasStoredSession(): boolean {
+    return isPlatformBrowser(this.platformId) &&
+      !!localStorage.getItem(SESSION_ID_KEY) &&
+      !!localStorage.getItem(SESSION_TOKEN_KEY);
+  }
+
+  private storeSession(session: SessionResponse): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    localStorage.setItem(SESSION_ID_KEY, session.sessionId);
+    localStorage.setItem(SESSION_TOKEN_KEY, session.sessionToken);
+  }
+
+  private clearSession(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    localStorage.removeItem(SESSION_ID_KEY);
+    localStorage.removeItem(SESSION_TOKEN_KEY);
+  }
+
+  private refreshCurrentUser(): void {
+    this.apiService.me().subscribe({
+      next: user => this.currentUser.set(user),
+      error: () => {
+        this.clearSession();
+        this.currentUser.set(null);
+      },
+    });
+  }
+
+  loginWithCredentials(credentials: LoginRequest): Observable<SessionResponse> {
+    return this.apiService.login(credentials).pipe(
+      tap(session => {
+        this.storeSession(session);
+        this.refreshCurrentUser();
+      }),
+    );
+  }
+
+  register(data: RegisterRequest): Observable<SessionResponse> {
+    return this.apiService.register(data).pipe(
+      tap(session => {
+        this.storeSession(session);
+        this.refreshCurrentUser();
+      }),
+    );
+  }
+
+  /** Local-only escape hatch while there's no real Zitadel session — see environment.devAuthBypass. */
+  devLogin(): Observable<SessionResponse> {
+    return this.apiService.devLogin().pipe(
+      tap(session => {
+        this.storeSession(session);
+        this.refreshCurrentUser();
+      }),
+    );
+  }
+
+  /** Redirects the browser to Zitadel's Google consent screen. Zitadel redirects back to /auth/callback. */
+  loginWithGoogle(): void {
+    this.apiService.googleLogin().subscribe(res => {
+      if (isPlatformBrowser(this.platformId)) window.location.href = res.authUrl;
+    });
+  }
+
+  /** Redirects the browser to Zitadel's GitHub consent screen. Zitadel redirects back to /auth/callback. */
+  loginWithGitHub(): void {
+    this.apiService.githubLogin().subscribe(res => {
+      if (isPlatformBrowser(this.platformId)) window.location.href = res.authUrl;
+    });
+  }
+
+  /** Finishes the IDP flow once Zitadel redirects back to /auth/callback with intentId/intentToken/userId. */
+  completeIdpLogin(intentId: string, intentToken: string, userId: string): Observable<SessionResponse> {
+    return this.apiService.idpCallback({ intentId, intentToken, userId }).pipe(
+      tap(session => {
+        this.storeSession(session);
+        this.refreshCurrentUser();
+      }),
+    );
   }
 
   logout(): void {
-    this.oauthService.logOut();
-    this.oauthService.postLogoutRedirectUri = 'http://localhost:4200';
+    if (isPlatformBrowser(this.platformId)) {
+      const sessionId = localStorage.getItem(SESSION_ID_KEY);
+      const sessionToken = localStorage.getItem(SESSION_TOKEN_KEY);
+      if (sessionId && sessionToken) {
+        this.apiService.logout(sessionId, sessionToken).subscribe();
+      }
+    }
+    this.clearSession();
+    this.currentUser.set(null);
   }
 
   isLoggedIn(): boolean {
-    return this.oauthService.hasValidAccessToken();
+    return this.hasStoredSession();
   }
 
-  getAccessToken(): string {
-    return this.oauthService.getAccessToken();
-  }
-
-  getUserInfo(): object {
-    return this.oauthService.getIdentityClaims();
+  getUserInfo(): MeResponse | null {
+    return this.currentUser();
   }
 
   getRoles(): string[] {
-    const claims = this.oauthService.getIdentityClaims() as any;
-    if (!claims) return [];
-
-    const rolesObj = claims['urn:zitadel:iam:org:project:roles'];
-    if (!rolesObj) return [];
-
-    return Object.keys(rolesObj);
+    return this.currentUser()?.roles ?? [];
   }
 
+  /**
+   * 'plat-admin'/'sys-admin' son los roles propios de Arkivy (RF-AUTH-04) —
+   * viven en `isPlatformAdmin`/`isSysAdmin` de /auth/me (Fase 1), calculados
+   * server-side por Organización, no como claims de Zitadel. Se chequean acá
+   * primero; `roles` (claims reales de Zitadel) queda como fallback para
+   * cualquier otro rol que sí se maneje ahí.
+   */
   hasRole(role: string): boolean {
+    const user = this.currentUser();
+    if (role === 'plat-admin' && user?.isPlatformAdmin) return true;
+    if (role === 'sys-admin' && user?.isSysAdmin) return true;
     return this.getRoles().includes(role);
   }
 

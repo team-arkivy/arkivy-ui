@@ -1,0 +1,24 @@
+<div class="doc-link-picker">
+  <input
+    type="text"
+    class="doc-link-picker-input"
+    placeholder="Buscar página para vincular..."
+    [ngModel]="query()"
+    (ngModelChange)="onQueryChange($event)"
+  />
+  @if (query().trim()) {
+    <div class="doc-link-picker-results">
+      @if (searching()) {
+        <p class="doc-link-picker-msg">Buscando...</p>
+      } @else if (results().length === 0) {
+        <p class="doc-link-picker-msg">Sin resultados.</p>
+      } @else {
+        @for (page of results(); track page.id) {
+          <button type="button" class="doc-link-picker-item" (click)="select(page)">
+            {{ page.title }}
+          </button>
+        }
+      }
+    </div>
+  }
+</div>

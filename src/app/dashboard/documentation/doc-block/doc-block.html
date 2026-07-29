@@ -1,0 +1,93 @@
+@switch (block.type) {
+  @case ('text') {
+    <textarea
+      #textRef
+      class="notion-block"
+      rows="1"
+      placeholder="Escribe algo... (tip: [[ para enlazar una página)"
+      [value]="block.content"
+      (input)="onInput($event)"
+      (keydown)="onKeydown($event)"
+    ></textarea>
+    @if (showLinkTrigger()) {
+      <app-doc-link-picker (picked)="onLinkTriggerPicked($event)" />
+    }
+  }
+  @case ('code') {
+    <div class="doc-code-block">
+      <div class="doc-code-toolbar">
+        <select class="doc-code-lang-select" (change)="onLanguageChange($event)">
+          @for (lang of languageOptions; track lang) {
+            <option [value]="lang" [selected]="lang === (block.language ?? 'other')">{{ lang }}</option>
+          }
+        </select>
+        <button class="doc-code-copy-btn" type="button" [title]="copied() ? 'Copiado' : 'Copiar'" (click)="copyCode()">
+          <app-icon [name]="copied() ? 'check' : 'copy'" />
+        </button>
+      </div>
+      <textarea
+        #textRef
+        class="doc-code-textarea"
+        rows="1"
+        placeholder="Escribe código..."
+        [value]="block.content"
+        (input)="onInput($event)"
+        (keydown)="onCodeKeydown($event)"
+      ></textarea>
+    </div>
+  }
+  @case ('file') {
+    <div class="doc-file-block">
+      @if (fileMeta; as meta) {
+        <div class="doc-file-chip">
+          <app-icon name="file" />
+          <span class="doc-file-name">{{ meta.fileName }}</span>
+          <button class="doc-file-action" type="button" title="Descargar" [disabled]="downloading()" (click)="downloadAttachment()">
+            <app-icon name="download" />
+          </button>
+          <button class="doc-file-action doc-file-action-danger" type="button" title="Quitar" (click)="removeAttachment()">
+            <app-icon name="close" />
+          </button>
+        </div>
+      } @else if (uploading()) {
+        <div class="doc-file-chip doc-file-chip-empty">Subiendo…</div>
+      } @else {
+        <label class="doc-file-upload-label">
+          <app-icon name="file" />
+          <span>Adjuntar archivo (PDF, Word, TXT, MD, Excel — máx. 25MB)</span>
+          <input type="file" class="doc-file-input" accept=".pdf,.doc,.docx,.txt,.md,.xls,.xlsx" (change)="onFileSelected($event)" />
+        </label>
+      }
+      @if (fileError()) {
+        <p class="doc-file-error">{{ fileError() }}</p>
+      }
+    </div>
+  }
+  @case ('link') {
+    @if (linkTarget; as target) {
+      @if (target.broken) {
+        <div class="doc-link-chip doc-link-chip-broken">
+          <app-icon name="alert-triangle" />
+          <span class="doc-file-name">{{ target.title }}</span>
+          <span class="doc-link-broken-label">(página eliminada)</span>
+          <button class="doc-file-action" type="button" title="Crear página" (click)="recreateLinkTarget()">
+            <app-icon name="plus" />
+          </button>
+          <button class="doc-file-action doc-file-action-danger" type="button" title="Quitar enlace" (click)="clearLinkTarget()">
+            <app-icon name="close" />
+          </button>
+        </div>
+      } @else {
+        <div class="doc-link-chip">
+          <app-icon name="link" />
+          <span class="doc-file-name" (click)="navigateToLinkTarget()">{{ target.title }}</span>
+          <button class="doc-file-action doc-file-action-danger" type="button" title="Quitar" (click)="clearLinkTarget()">
+            <app-icon name="close" />
+          </button>
+        </div>
+      }
+    } @else {
+      <app-doc-link-picker (picked)="onLinkPicked($event)" />
+    }
+  }
+}

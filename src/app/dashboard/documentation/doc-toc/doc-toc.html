@@ -1,0 +1,156 @@
+<aside class="doc-toc-panel" [class.toc-collapsed]="!content.tocOpen()">
+  <div class="toc-panel-header">
+    <button class="panel-toggle-inner" (click)="content.toggleToc()">
+      <app-icon name="layout-right" />
+    </button>
+    <button class="panel-toggle-inner" title="Ver grafo de este espacio" (click)="content.toggleGraph()">
+      <app-icon name="graph" />
+    </button>
+    <app-doc-search />
+  </div>
+
+  @if (actionError()) {
+    <p class="toc-state-msg toc-state-error">
+      {{ actionError() }}
+      <button class="toc-dismiss-error" (click)="actionError.set('')">✕</button>
+    </p>
+  }
+
+  @if (content.spacesLoading()) {
+    <p class="toc-state-msg">Cargando espacios...</p>
+  } @else if (content.spacesError()) {
+    <p class="toc-state-msg toc-state-error">{{ content.spacesError() }}</p>
+  } @else {
+    @if (content.selectedSpace(); as space) {
+      <div class="toc-space-header">
+        @if (editingSpaceId === space.id) {
+          <input
+            class="toc-space-edit-input"
+            [(ngModel)]="editValue"
+            (keydown.enter)="saveSpaceName(space)"
+            (keydown.escape)="cancelEditSpace()"
+            (blur)="saveSpaceName(space)"
+          />
+        } @else {
+          <h2 class="toc-space-title" title="Doble clic para renombrar" (dblclick)="startEditSpace(space, $event)">
+            {{ space.name }}
+          </h2>
+          @if (isPlatformAdmin) {
+            <button class="toc-space-action" title="Eliminar espacio" (click)="requestDeleteSpace(space, $event)">
+              <app-icon name="trash" />
+            </button>
+          }
+        }
+      </div>
+    }
+
+    @if (content.spaces().length > 1) {
+      <div class="toc-space-switcher">
+        @for (s of content.spaces(); track s.id) {
+          <button
+            class="toc-space-chip"
+            [class.active]="s.id === content.selectedSpaceId()"
+            (click)="content.selectSpace(s.id)">
+            {{ s.name }}
+          </button>
+        }
+      </div>
+    }
+
+    @if (isPlatformAdmin) {
+      @if (showCreateSpace) {
+        <div class="toc-inline-form">
+          <input
+            class="toc-inline-input"
+            [(ngModel)]="newSpaceName"
+            placeholder="Nombre del espacio"
+            (keydown.enter)="confirmCreateSpace()"
+            (keydown.escape)="cancelCreateSpace()"
+          />
+          <button class="toc-inline-confirm" [disabled]="!newSpaceName.trim() || busy()" (click)="confirmCreateSpace()">
+            <app-icon name="check" />
+          </button>
+        </div>
+      } @else {
+        <button class="toc-action-item toc-new-space-btn" (click)="openCreateSpace()">
+          <app-icon name="plus" class="toc-icon" /> Nuevo espacio
+        </button>
+      }
+    }
+
+    @if (content.tocLoading()) {
+      <p class="toc-state-msg">Cargando páginas...</p>
+    } @else if (content.tocError()) {
+      <p class="toc-state-msg toc-state-error">{{ content.tocError() }}</p>
+    } @else {
+      @for (section of content.toc(); track section.category) {
+        <div class="toc-section">
+          <div class="toc-section-header">
+            <span class="toc-category">{{ categoryLabel(section.category) }}</span>
+          </div>
+          <div class="toc-items">
+            @if (section.pages.length === 0) {
+              <p class="toc-state-msg toc-state-empty">Sin páginas</p>
+            }
+            @for (page of section.pages; track page.id; let i = $index) {
+              <div
+                class="toc-doc-row"
+                [class.drag-over]="draggingCategory === section.category && dragOverIndex === i"
+                draggable="true"
+                (dragstart)="onPageDragStart($event, page, section.category)"
+                (dragover)="onPageDragOver($event, section.category, i)"
+                (drop)="onPageDrop($event, section.category, section.pages)"
+                (dragend)="onPageDragEnd()">
+                <button
+                  class="toc-doc-item"
+                  [class.active]="page.id === content.currentPage()?.id"
+                  (click)="openPage(page.id)">
+                  <app-icon name="doc" class="toc-icon" />
+                  <span class="toc-doc-title">{{ page.title }}</span>
+                  <span class="toc-status-dot" [class]="statusClass[page.status]" [title]="statusLabel[page.status]"></span>
+                </button>
+                <button class="toc-doc-delete" title="Eliminar página" (click)="requestDeletePage(page, $event)">
+                  <app-icon name="close" />
+                </button>
+              </div>
+            }
+            @if (creatingPageCategory === section.category) {
+              <div class="toc-inline-form toc-inline-form--page">
+                <input
+                  class="toc-inline-input"
+                  [(ngModel)]="newPageTitle"
+                  placeholder="Título de la página"
+                  (keydown.enter)="confirmCreatePage()"
+                  (keydown.escape)="cancelCreatePage()"
+                />
+                <button class="toc-inline-confirm" [disabled]="busy()" (click)="confirmCreatePage()">
+                  <app-icon name="check" />
+                </button>
+              </div>
+            } @else {
+              <button class="toc-action-item" (click)="openCreatePage(section.category)">+ Nueva página</button>
+            }
+          </div>
+        </div>
+      }
+    }
+  }
+</aside>
+
+@if (confirmDeleteSpace; as space) {
+  <app-confirm-dialog
+    title="Eliminar espacio"
+    [message]="'Esto eliminará &quot;' + space.name + '&quot; y todas sus páginas. Esta acción no se puede deshacer.'"
+    (confirm)="confirmDeleteSpaceNow()"
+    (cancel)="cancelDeleteSpace()"
+  />
+}
+
+@if (confirmDeletePage; as page) {
+  <app-confirm-dialog
+    title="Eliminar página"
+    [message]="'Esto eliminará &quot;' + page.title + '&quot;. Esta acción no se puede deshacer.'"
+    (confirm)="confirmDeletePageNow()"
+    (cancel)="cancelDeletePage()"
+  />
+}
