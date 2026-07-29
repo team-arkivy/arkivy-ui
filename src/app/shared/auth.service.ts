@@ -127,7 +127,17 @@ export class AuthService {
     return this.currentUser()?.roles ?? [];
   }
 
+  /**
+   * 'plat-admin'/'sys-admin' son los roles propios de Arkivy (RF-AUTH-04) —
+   * viven en `isPlatformAdmin`/`isSysAdmin` de /auth/me (Fase 1), calculados
+   * server-side por Organización, no como claims de Zitadel. Se chequean acá
+   * primero; `roles` (claims reales de Zitadel) queda como fallback para
+   * cualquier otro rol que sí se maneje ahí.
+   */
   hasRole(role: string): boolean {
+    const user = this.currentUser();
+    if (role === 'plat-admin' && user?.isPlatformAdmin) return true;
+    if (role === 'sys-admin' && user?.isSysAdmin) return true;
     return this.getRoles().includes(role);
   }
 

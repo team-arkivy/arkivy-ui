@@ -15,6 +15,7 @@ import { ContentService } from '../shared/content.service';
 import { AuthService } from '../shared/auth.service';
 import { DocTocComponent } from './documentation/doc-toc/doc-toc';
 import { DocBreadcrumbComponent } from './documentation/doc-breadcrumb/doc-breadcrumb';
+import { DocGraphComponent } from './documentation/doc-graph/doc-graph';
 
 interface UserClaims {
   name?: string;
@@ -34,7 +35,7 @@ interface NetworkNode {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, IconComponent, DocTocComponent, DocBreadcrumbComponent],
+  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, IconComponent, DocTocComponent, DocBreadcrumbComponent, DocGraphComponent],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.css'],
 })

@@ -1,6 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { EMPTY, Observable, Subject, switchMap, tap, throwError } from 'rxjs';
-import { ApiService, Attachment, Block, Page, PageCategory, Space, TocCategory } from './api.service';
+import { ApiService, Attachment, Block, GraphEdge, GraphNode, OrgUser, Page, PageCategory, PageLink, PageVersion, Space, TocCategory } from './api.service';
 
 export type SaveStatus = 'idle' | 'pending' | 'saving' | 'saved' | 'error';
 
@@ -54,12 +54,33 @@ export class ContentService {
   readonly tocError = signal<string | null>(null);
   readonly tocOpen = signal(true);
 
+  // ─── Vista de grafo (RF-NODE-04) ─────────────────────────────────────────
+  readonly graphOpen = signal(false);
+  readonly graphNodes = signal<GraphNode[]>([]);
+  readonly graphEdges = signal<GraphEdge[]>([]);
+  readonly graphLoading = signal(false);
+  readonly graphError = signal<string | null>(null);
+
   // ─── Current page ───────────────────────────────────────────────────────
   readonly currentPage = signal<Page | null>(null);
   readonly currentBlocks = signal<Block[]>([]);
   readonly pageLoading = signal(false);
   readonly pageError = signal<string | null>(null);
   readonly saveStatus = signal<SaveStatus>('idle');
+
+  // ─── Enlaces del grafo de nodos (RF-NODE) ───────────────────────────────
+  /** Aristas salientes vivas de currentPage — un bloque `link` cuyo target no está acá está roto (RF-NODE-05). */
+  readonly currentPageLinks = signal<PageLink[]>([]);
+  readonly backlinks = signal<Page[]>([]);
+  readonly backlinksLoading = signal(false);
+
+  // ─── Flujo de revisión y versiones (RF-FLOW, RF-DOC-08) ─────────────────
+  readonly pageVersions = signal<PageVersion[]>([]);
+  readonly versionsLoading = signal(false);
+  readonly versionsError = signal<string | null>(null);
+
+  readonly spaceEditors = signal<OrgUser[]>([]);
+  readonly spaceEditorsLoading = signal(false);
 
   // ═══════════════════════════════════════════════════════════════════════
   // CARGA
@@ -108,12 +129,17 @@ export class ContentService {
     this.flushPendingSave();
     this.pageLoading.set(true);
     this.pageError.set(null);
+    this.pageVersions.set([]);
+    this.currentPageLinks.set([]);
+    this.backlinks.set([]);
     this.api.getPage(pageId).subscribe({
-      next: ({ page, blocks }) => {
+      next: ({ page, blocks, links }) => {
         this.currentPage.set(page);
         this.currentBlocks.set(blocks ?? []);
+        this.currentPageLinks.set(links ?? []);
         this.pageLoading.set(false);
         this.saveStatus.set('idle');
+        this.loadBacklinks(pageId);
       },
       error: () => {
         this.pageLoading.set(false);
@@ -124,8 +150,42 @@ export class ContentService {
     });
   }
 
+  private loadBacklinks(pageId: string): void {
+    this.backlinksLoading.set(true);
+    this.api.getBacklinks(pageId).subscribe({
+      next: pages => {
+        this.backlinks.set(pages);
+        this.backlinksLoading.set(false);
+      },
+      error: () => this.backlinksLoading.set(false),
+    });
+  }
+
   toggleToc(): void {
     this.tocOpen.update(open => !open);
+  }
+
+  toggleGraph(): void {
+    this.graphOpen.update(open => !open);
+    if (this.graphOpen()) this.loadGraph();
+  }
+
+  private loadGraph(): void {
+    const spaceId = this.selectedSpaceId();
+    if (!spaceId) return;
+    this.graphLoading.set(true);
+    this.graphError.set(null);
+    this.api.getSpaceGraph(spaceId).subscribe({
+      next: ({ nodes, edges }) => {
+        this.graphNodes.set(nodes);
+        this.graphEdges.set(edges);
+        this.graphLoading.set(false);
+      },
+      error: () => {
+        this.graphLoading.set(false);
+        this.graphError.set('No se pudo cargar el grafo de este espacio.');
+      },
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -213,6 +273,77 @@ export class ContentService {
       ...cat,
       pages: cat.pages.map(p => (p.id === pageId ? updater(p) : p)),
     })));
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // FLUJO DE REVISIÓN Y VERSIONES (RF-FLOW, RF-DOC-08) — las mutaciones
+  // parchean currentPage/toc con el nuevo status en vez de recargar la
+  // página; el backend no devuelve el Page actualizado, así que el nuevo
+  // valor sale del propio contexto de la acción (ya lo sabemos: submit ->
+  // in_review, approve -> published, reject -> draft).
+  // ═══════════════════════════════════════════════════════════════════════
+
+  loadSpaceEditors(): void {
+    const spaceId = this.selectedSpaceId();
+    if (!spaceId) return;
+    this.spaceEditorsLoading.set(true);
+    this.api.listSpaceEditors(spaceId).subscribe({
+      next: editors => {
+        this.spaceEditors.set(editors);
+        this.spaceEditorsLoading.set(false);
+      },
+      error: () => this.spaceEditorsLoading.set(false),
+    });
+  }
+
+  submitForReview(reviewerId: string): Observable<{ message: string }> {
+    const page = this.currentPage();
+    if (!page) return throwError(() => new Error('No hay una página abierta'));
+    return this.api.submitForReview(page.id, reviewerId).pipe(
+      tap(() => {
+        this.currentPage.update(p => (p ? { ...p, status: 'in_review', reviewerId } : p));
+        this.patchTocPage(page.id, p => ({ ...p, status: 'in_review', reviewerId }));
+      }),
+    );
+  }
+
+  approvePage(): Observable<{ message: string }> {
+    const page = this.currentPage();
+    if (!page) return throwError(() => new Error('No hay una página abierta'));
+    return this.api.approvePage(page.id).pipe(
+      tap(() => {
+        this.currentPage.update(p => (p ? { ...p, status: 'published' } : p));
+        this.patchTocPage(page.id, p => ({ ...p, status: 'published' }));
+      }),
+    );
+  }
+
+  rejectPage(comment: string): Observable<{ message: string }> {
+    const page = this.currentPage();
+    if (!page) return throwError(() => new Error('No hay una página abierta'));
+    return this.api.rejectPage(page.id, comment).pipe(
+      tap(() => {
+        this.currentPage.update(p => (p ? { ...p, status: 'draft', reviewerId: undefined } : p));
+        this.patchTocPage(page.id, p => ({ ...p, status: 'draft', reviewerId: undefined }));
+      }),
+    );
+  }
+
+  loadVersions(): void {
+    const page = this.currentPage();
+    if (!page) return;
+    this.versionsLoading.set(true);
+    this.versionsError.set(null);
+    this.api.listVersions(page.id).subscribe({
+      next: versions => {
+        this.pageVersions.set(versions);
+        this.versionsLoading.set(false);
+      },
+      error: () => {
+        this.versionsLoading.set(false);
+        this.versionsError.set('No se pudo cargar el historial de versiones.');
+      },
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -369,13 +500,29 @@ export class ContentService {
       targetSpaceId: target.spaceId,
       targetPageTitle: target.title,
     };
+    // Actualización optimista: el backend recién va a derivar el PageLink real
+    // al guardar (debounced), pero como el target salió de /search recién
+    // confirmamos que existe — sin esto, el chip se vería "roto" un instante
+    // hasta el próximo GetPage.
+    const page = this.currentPage();
+    if (page && !this.currentPageLinks().some(l => l.targetPageId === target.id)) {
+      this.currentPageLinks.update(links => [...links, {
+        id: crypto.randomUUID(), sourcePageId: page.id, targetPageId: target.id,
+        linkType: 'reference', createdAt: new Date().toISOString(),
+      }]);
+    }
     this.saveImmediately();
   }
 
   clearLinkTarget(blockId: string): void {
     const block = this.currentBlocks().find(b => b.id === blockId);
     if (!block) return;
+    const oldTargetId = block.metadata?.['targetPageId'] as string | undefined;
     block.metadata = undefined;
+    // Solo saca la arista optimista si ningún otro bloque de esta página sigue apuntando al mismo target.
+    if (oldTargetId && !this.currentBlocks().some(b => b.id !== blockId && b.metadata?.['targetPageId'] === oldTargetId)) {
+      this.currentPageLinks.update(links => links.filter(l => l.targetPageId !== oldTargetId));
+    }
     this.saveImmediately();
   }
 

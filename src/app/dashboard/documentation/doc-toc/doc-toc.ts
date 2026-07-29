@@ -8,6 +8,7 @@ import { DocSearchComponent } from '../doc-search/doc-search';
 import { ContentService } from '../../../shared/content.service';
 import { AuthService } from '../../../shared/auth.service';
 import { Page, PageCategory, Space } from '../../../shared/api.service';
+import { PAGE_STATUS_CLASS, PAGE_STATUS_LABEL } from '../../../shared/page-status';
 
 const CATEGORY_LABELS: Record<PageCategory, string> = {
   tutorial: 'Tutorial',
@@ -28,6 +29,9 @@ export class DocTocComponent implements OnInit {
   content = inject(ContentService);
   private authService = inject(AuthService);
   private router = inject(Router);
+
+  readonly statusLabel = PAGE_STATUS_LABEL;
+  readonly statusClass = PAGE_STATUS_CLASS;
 
   // Signals (not plain properties) because they're written from inside
   // .subscribe() error callbacks — this app is zoneless, so a plain property
@@ -126,9 +130,9 @@ export class DocTocComponent implements OnInit {
         this.busy.set(false);
         this.showCreateSpace = false;
       },
-      error: () => {
+      error: (err: { error?: { error?: string } }) => {
         this.busy.set(false);
-        this.actionError.set('No se pudo crear el espacio.');
+        this.actionError.set(err?.error?.error ?? 'No se pudo crear el espacio.');
       },
     });
   }
@@ -181,9 +185,9 @@ export class DocTocComponent implements OnInit {
         this.busy.set(false);
         this.openPage(page.id);
       },
-      error: () => {
+      error: (err: { error?: { error?: string } }) => {
         this.busy.set(false);
-        this.actionError.set('No se pudo crear la página.');
+        this.actionError.set(err?.error?.error ?? 'No se pudo crear la página.');
       },
     });
   }

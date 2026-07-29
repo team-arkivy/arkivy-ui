@@ -105,6 +105,11 @@
     <app-doc-toc />
   }
 
+  <!-- ─── Vista de grafo (overlay de pantalla completa) ───────── -->
+  @if (docLink.isActive && content.graphOpen()) {
+    <app-doc-graph />
+  }
+
   <!-- ─── Botón flotante: sidebar colapsado ────────────────── -->
   @if (!sidebarOpen) {
     <div class="floating-panel-btn floating-left" (click)="toggleSidebar()">

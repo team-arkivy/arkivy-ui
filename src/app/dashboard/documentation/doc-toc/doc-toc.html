@@ -3,6 +3,9 @@
     <button class="panel-toggle-inner" (click)="content.toggleToc()">
       <app-icon name="layout-right" />
     </button>
+    <button class="panel-toggle-inner" title="Ver grafo de este espacio" (click)="content.toggleGraph()">
+      <app-icon name="graph" />
+    </button>
     <app-doc-search />
   </div>
 
@@ -103,7 +106,8 @@
                   [class.active]="page.id === content.currentPage()?.id"
                   (click)="openPage(page.id)">
                   <app-icon name="doc" class="toc-icon" />
-                  <span>{{ page.title }}</span>
+                  <span class="toc-doc-title">{{ page.title }}</span>
+                  <span class="toc-status-dot" [class]="statusClass[page.status]" [title]="statusLabel[page.status]"></span>
                 </button>
                 <button class="toc-doc-delete" title="Eliminar página" (click)="requestDeletePage(page, $event)">
                   <app-icon name="close" />

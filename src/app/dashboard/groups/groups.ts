@@ -441,9 +441,9 @@ export class GroupsComponent implements OnInit {
         this.pendingSelectId = group.id;
         this.refresh();
       },
-      error: () => {
+      error: (err: { error?: { error?: string } }) => {
         this.busy = false;
-        this.actionError = 'No se pudo crear el grupo.';
+        this.actionError = err?.error?.error ?? 'No se pudo crear el grupo.';
       },
     });
   }

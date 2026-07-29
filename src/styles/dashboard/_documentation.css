@@ -283,6 +283,131 @@ app-documentation {
 .doc-link-chip .doc-file-name { cursor: pointer; }
 .doc-link-chip .doc-file-name:hover { text-decoration: underline; }
 
+/* ─── Enlace roto (RF-NODE-05) ─── */
+.doc-link-chip-broken {
+  background: rgba(248, 113, 113, 0.08);
+  border-color: rgba(248, 113, 113, 0.3);
+  color: rgba(254, 202, 202, 0.9);
+}
+.doc-link-chip-broken app-icon:first-child { color: rgba(248, 113, 113, 0.8); flex-shrink: 0; }
+.doc-link-chip-broken .doc-file-name { cursor: default; text-decoration: line-through; opacity: 0.8; }
+
+.doc-link-broken-label {
+  font-size: 11.5px;
+  color: rgba(248, 113, 113, 0.6);
+  font-family: var(--font-ui);
+  white-space: nowrap;
+}
+
+/* ─── Backlinks (RF-NODE-03) ─── */
+.doc-backlinks {
+  margin: 24px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid rgba(139, 92, 246, 0.12);
+}
+
+.doc-backlinks-title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(200, 190, 255, 0.4);
+  font-family: var(--font-ui);
+}
+
+.doc-backlinks-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.doc-backlink-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(109, 69, 212, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.22);
+  border-radius: 999px;
+  color: rgba(220, 215, 255, 0.85);
+  font-size: 12.5px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.doc-backlink-chip:hover { background: rgba(109, 69, 212, 0.22); }
+.doc-backlink-chip app-icon { width: 12px; height: 12px; flex-shrink: 0; color: rgba(167, 139, 250, 0.7); }
+
+/* ─── Vista de grafo (RF-NODE-04) ─── */
+.doc-graph-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  background: rgba(6, 4, 16, 0.94);
+  backdrop-filter: blur(2px);
+}
+
+.doc-graph-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 16px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--clr-white);
+  font-family: var(--font-ui);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.doc-graph-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 8px;
+  background: rgba(14, 11, 28, 0.6);
+  color: rgba(220, 215, 255, 0.8);
+  cursor: pointer;
+}
+.doc-graph-close:hover { background: rgba(109, 69, 212, 0.2); }
+.doc-graph-close app-icon { width: 14px; height: 14px; }
+
+.doc-graph-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.doc-graph-msg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 24px;
+  color: rgba(200, 190, 255, 0.5);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  text-align: center;
+  pointer-events: none;
+}
+.doc-graph-msg-error { color: rgba(248, 113, 113, 0.75); }
+
+.doc-graph-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  cursor: default;
+}
+
 /* ─── Selector de enlace ─── */
 .doc-link-picker {
   position: relative;
@@ -841,6 +966,262 @@ app-doc-toc, app-doc-breadcrumb {
   font-family: var(--font-ui);
 }
 
+/* ─── Flujo de revisión y estado de página (RF-FLOW, Fase 4) ─── */
+.page-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.status-draft {
+  color: rgba(200, 190, 255, 0.6);
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.status-in-review {
+  color: rgba(251, 191, 36, 0.85);
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.status-published {
+  color: rgba(74, 222, 128, 0.85);
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.doc-flow-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0 18px;
+}
+
+.doc-flow-action {
+  position: relative;
+}
+
+.doc-flow-btn,
+.doc-flow-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background 0.12s, opacity 0.12s;
+}
+
+.doc-flow-btn app-icon,
+.doc-flow-btn-secondary app-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.doc-flow-btn {
+  color: var(--clr-white);
+  background: rgba(109, 69, 212, 0.35);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+}
+
+.doc-flow-btn:hover:not(:disabled) { background: rgba(109, 69, 212, 0.5); }
+.doc-flow-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.doc-flow-btn-approve {
+  background: rgba(74, 222, 128, 0.18);
+  border-color: rgba(74, 222, 128, 0.35);
+  color: rgba(187, 247, 208, 0.95);
+}
+.doc-flow-btn-approve:hover:not(:disabled) { background: rgba(74, 222, 128, 0.28); }
+
+.doc-flow-btn-reject {
+  background: rgba(248, 113, 113, 0.14);
+  border-color: rgba(248, 113, 113, 0.3);
+  color: rgba(254, 202, 202, 0.95);
+}
+.doc-flow-btn-reject:hover:not(:disabled) { background: rgba(248, 113, 113, 0.22); }
+
+.doc-flow-btn-secondary {
+  color: rgba(220, 215, 255, 0.75);
+  background: rgba(14, 11, 28, 0.6);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+.doc-flow-btn-secondary:hover { background: rgba(109, 69, 212, 0.18); }
+
+.doc-flow-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 60;
+  width: 260px;
+  background: rgba(17, 13, 32, 0.98);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(109, 69, 212, 0.1);
+  padding: 12px;
+}
+
+.doc-flow-popover-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: rgba(200, 190, 255, 0.5);
+  font-family: var(--font-ui);
+}
+
+.doc-flow-select,
+.doc-flow-textarea {
+  width: 100%;
+  padding: 7px 10px;
+  background: rgba(14, 11, 28, 0.6);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  color: var(--clr-white);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  outline: none;
+}
+
+.doc-flow-textarea { resize: vertical; }
+
+.doc-flow-msg {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: rgba(200, 190, 255, 0.4);
+  font-family: var(--font-ui);
+}
+
+.doc-flow-popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.doc-flow-history { margin-left: auto; }
+
+/* ─── Historial de versiones (RF-DOC-08) ─── */
+.doc-version-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  width: 320px;
+  max-height: 380px;
+  overflow-y: auto;
+  background: rgba(17, 13, 32, 0.98);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(109, 69, 212, 0.1);
+  padding: 10px;
+}
+
+.doc-version-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--clr-white);
+  font-family: var(--font-ui);
+}
+
+.doc-version-close {
+  display: flex;
+  border: none;
+  background: transparent;
+  color: rgba(200, 190, 255, 0.5);
+  cursor: pointer;
+  padding: 2px;
+}
+.doc-version-close app-icon { width: 14px; height: 14px; }
+
+.doc-version-msg {
+  margin: 4px;
+  padding: 4px 6px;
+  font-size: 12.5px;
+  color: rgba(200, 190, 255, 0.4);
+  font-family: var(--font-ui);
+}
+.doc-version-msg-error { color: rgba(248, 113, 113, 0.75); }
+
+.doc-version-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.doc-version-item {
+  display: flex;
+  gap: 9px;
+  padding: 8px 6px;
+  border-radius: 8px;
+}
+.doc-version-item:hover { background: rgba(109, 69, 212, 0.12); }
+
+.doc-version-item-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.doc-version-item-icon.trigger-submitted_for_review { color: rgba(251, 191, 36, 0.8); }
+.doc-version-item-icon.trigger-approved { color: rgba(74, 222, 128, 0.8); }
+.doc-version-item-icon.trigger-rejected { color: rgba(248, 113, 113, 0.8); }
+
+.doc-version-item-body { flex: 1; min-width: 0; }
+
+.doc-version-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.doc-version-trigger {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(220, 215, 255, 0.9);
+  font-family: var(--font-ui);
+}
+
+.doc-version-date {
+  font-size: 11px;
+  color: rgba(200, 190, 255, 0.4);
+  font-family: var(--font-ui);
+  white-space: nowrap;
+}
+
+.doc-version-diff {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: rgba(200, 190, 255, 0.55);
+  font-family: var(--font-ui);
+}
+
+.doc-version-comment {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-style: italic;
+  color: rgba(254, 202, 202, 0.75);
+  font-family: var(--font-ui);
+}
+
 .toc-space-title {
   flex: 1;
   min-width: 0;
@@ -908,6 +1289,24 @@ app-doc-toc, app-doc-breadcrumb {
   height: 13px;
   flex-shrink: 0;
 }
+
+.toc-doc-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toc-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.toc-status-dot.status-draft { background: rgba(200, 190, 255, 0.35); }
+.toc-status-dot.status-in-review { background: rgba(251, 191, 36, 0.75); }
+.toc-status-dot.status-published { background: rgba(74, 222, 128, 0.75); }
 
 .toc-action-item {
   padding: 5px 16px 5px 20px;

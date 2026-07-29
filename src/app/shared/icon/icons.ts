@@ -183,4 +183,38 @@ export const ICONS: Record<string, string> = {
     <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
   </svg>`,
 
+  // ─── Flujo de revisión y versiones (Fase 4) ────────────────
+  send: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="22" y1="2" x2="11" y2="13"/>
+    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+  </svg>`,
+
+  history: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 3v5h5"/>
+    <path d="M3.05 13A9 9 0 106 5.3L3 8"/>
+    <polyline points="12 7 12 12 16 14"/>
+  </svg>`,
+
+  'x-circle': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="15" y1="9" x2="9" y2="15"/>
+    <line x1="9" y1="9" x2="15" y2="15"/>
+  </svg>`,
+
+  // ─── Grafo de nodos (Fase 5) ────────────────────────────────
+  'alert-triangle': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+    <line x1="12" y1="9" x2="12" y2="13"/>
+    <line x1="12" y1="17" x2="12.01" y2="17"/>
+  </svg>`,
+
+  graph: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="5" cy="6" r="3"/>
+    <circle cx="19" cy="6" r="3"/>
+    <circle cx="12" cy="18" r="3"/>
+    <line x1="7.5" y1="7.5" x2="10" y2="15.5"/>
+    <line x1="16.5" y1="7.5" x2="14" y2="15.5"/>
+    <line x1="8" y1="6" x2="16" y2="6"/>
+  </svg>`,
+
 };

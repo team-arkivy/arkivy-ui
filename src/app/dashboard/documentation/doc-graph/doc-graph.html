@@ -1,0 +1,25 @@
+<div class="doc-graph-overlay">
+  <div class="doc-graph-head">
+    <span>Grafo — {{ content.selectedSpace()?.name }}</span>
+    <button class="doc-graph-close" type="button" title="Cerrar" (click)="close()">
+      <app-icon name="close" />
+    </button>
+  </div>
+
+  <div class="doc-graph-body">
+    <canvas
+      #graphCanvas
+      class="doc-graph-canvas"
+      (mousemove)="onMouseMove($event)"
+      (click)="onClick($event)"
+    ></canvas>
+
+    @if (content.graphLoading()) {
+      <p class="doc-graph-msg">Calculando el grafo...</p>
+    } @else if (content.graphError()) {
+      <p class="doc-graph-msg doc-graph-msg-error">{{ content.graphError() }}</p>
+    } @else if (content.graphNodes().length === 0) {
+      <p class="doc-graph-msg">Este espacio todavía no tiene páginas para graficar.</p>
+    }
+  </div>
+</div>

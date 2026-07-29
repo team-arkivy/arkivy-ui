@@ -30,6 +30,7 @@ export interface MeResponse {
   organizationName?: string;
   planId?: string;
   isPlatformAdmin?: boolean;
+  isSysAdmin?: boolean;
 }
 
 export interface LogoutResponse {
@@ -91,6 +92,8 @@ export interface Space {
   createdAt: string;
 }
 
+export type PageStatus = 'draft' | 'in_review' | 'published';
+
 export interface Page {
   id: string;
   spaceId: string;
@@ -98,11 +101,33 @@ export interface Page {
   category: PageCategory;
   orderIndex: number;
   title: string;
-  status: string;
+  status: PageStatus;
+  reviewerId?: string;
   sourceType: string;
   authorId: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// ─── Review flow & versioning (RF-FLOW, RF-DOC-08) ────────────────────────
+
+export type VersionTrigger = 'submitted_for_review' | 'approved' | 'rejected';
+
+export interface VersionDiff {
+  titleChanged: boolean;
+  blocksAdded: number;
+  blocksRemoved: number;
+  blocksChanged: number;
+}
+
+export interface PageVersion {
+  id: string;
+  pageId: string;
+  authorId: string;
+  trigger: VersionTrigger;
+  diff: VersionDiff;
+  comment?: string;
+  createdAt: string;
 }
 
 export interface TocCategory {
@@ -121,9 +146,37 @@ export interface Block {
   metadata?: Record<string, unknown>;
 }
 
+export type LinkType = 'reference' | 'embed';
+
+export interface PageLink {
+  id: string;
+  sourcePageId: string;
+  targetPageId: string;
+  linkType: LinkType;
+  createdAt: string;
+}
+
 export interface PageDetail {
   page: Page;
   blocks: Block[];
+  links: PageLink[];
+}
+
+// ─── Grafo de nodos (RF-NODE-04) ───────────────────────────────────────
+
+export interface GraphNode {
+  id: string;
+  title: string;
+}
+
+export interface GraphEdge {
+  source: string;
+  target: string;
+}
+
+export interface SpaceGraph {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
 }
 
 export type FileType = 'pdf' | 'word' | 'txt' | 'markdown' | 'excel';
@@ -142,6 +195,8 @@ export interface Attachment {
 
 // ─── Organizations — matches internal/organizations.User's JSON shape ─────
 
+export type UserStatus = 'active' | 'inactive';
+
 export interface OrgUser {
   id: string;
   organizationId: string;
@@ -149,9 +204,60 @@ export interface OrgUser {
   name: string;
   isPlatformAdmin: boolean;
   isSysAdmin: boolean;
-  status: string;
+  status: UserStatus;
   lastAccessAt?: string;
   createdAt: string;
+}
+
+// ─── Planes y consumo (RF-PLAN-01/02/03) ──────────────────────────────────
+
+export interface Plan {
+  id: string;
+  name: string;
+  maxSpaces: number | null;
+  maxPages: number | null;
+  maxStorageBytes: number;
+  maxMembers: number;
+  maxGroups: number | null;
+  graphViewLevel: string;
+  versionRetentionDays: number | null;
+  maxGitRepos: number;
+  allowsIntegrations: boolean;
+  allowsWhiteLabel: boolean;
+}
+
+export interface OrgUsage {
+  organization: {
+    id: string;
+    name: string;
+    planId: string;
+    isPersonal: boolean;
+    storageUsedBytes: number;
+    status: string;
+    createdAt: string;
+  };
+  plan: Plan;
+  usage: {
+    spaces: number;
+    pages: number;
+    groups: number;
+    members: number;
+    storageUsedBytes: number;
+  };
+}
+
+// ─── Invitaciones (RF-AUTH-06, RF-USR-02) ─────────────────────────────────
+
+export type InvitationStatus = 'pending' | 'accepted';
+
+export interface Invitation {
+  id: string;
+  organizationId: string;
+  email: string;
+  invitedBy: string;
+  status: InvitationStatus;
+  createdAt: string;
+  acceptedAt?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -293,6 +399,34 @@ export class ApiService {
     return this.http.patch<{ message: string }>(`${this.base}/pages/${pageId}/order`, { newIndex });
   }
 
+  submitForReview(pageId: string, reviewerId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.base}/pages/${pageId}/submit-review`, { reviewerId });
+  }
+
+  approvePage(pageId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.base}/pages/${pageId}/approve`, {});
+  }
+
+  rejectPage(pageId: string, comment: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.base}/pages/${pageId}/reject`, { comment });
+  }
+
+  listVersions(pageId: string): Observable<PageVersion[]> {
+    return this.http.get<PageVersion[]>(`${this.base}/pages/${pageId}/versions`);
+  }
+
+  getBacklinks(pageId: string): Observable<Page[]> {
+    return this.http.get<Page[]>(`${this.base}/pages/${pageId}/backlinks`);
+  }
+
+  getSpaceGraph(spaceId: string): Observable<SpaceGraph> {
+    return this.http.get<SpaceGraph>(`${this.base}/spaces/${spaceId}/graph`);
+  }
+
+  listSpaceEditors(spaceId: string): Observable<OrgUser[]> {
+    return this.http.get<OrgUser[]>(`${this.base}/spaces/${spaceId}/editors`);
+  }
+
   deletePage(pageId: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.base}/pages/${pageId}`);
   }
@@ -327,5 +461,37 @@ export class ApiService {
 
   listUsers(): Observable<OrgUser[]> {
     return this.http.get<OrgUser[]>(`${this.base}/users`);
+  }
+
+  setUserStatus(userId: string, status: UserStatus): Observable<{ message: string }> {
+    return this.http.patch<{ message: string }>(`${this.base}/organizations/users/${userId}/status`, { status });
+  }
+
+  deleteUser(userId: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.base}/organizations/users/${userId}`);
+  }
+
+  listInvitations(): Observable<Invitation[]> {
+    return this.http.get<Invitation[]>(`${this.base}/organizations/invitations`);
+  }
+
+  createInvitation(email: string): Observable<Invitation> {
+    return this.http.post<Invitation>(`${this.base}/organizations/invitations`, { email });
+  }
+
+  revokeInvitation(id: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.base}/organizations/invitations/${id}`);
+  }
+
+  getUsage(): Observable<OrgUsage> {
+    return this.http.get<OrgUsage>(`${this.base}/organizations/usage`);
+  }
+
+  listPlans(): Observable<Plan[]> {
+    return this.http.get<Plan[]>(`${this.base}/organizations/plans`);
+  }
+
+  changePlan(planId: string): Observable<{ message: string }> {
+    return this.http.patch<{ message: string }>(`${this.base}/organizations/plan`, { planId });
   }
 }

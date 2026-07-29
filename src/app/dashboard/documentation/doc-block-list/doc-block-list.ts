@@ -2,7 +2,7 @@ import { AfterViewChecked, Component, Input, QueryList, ViewChildren, inject } f
 import { CommonModule } from '@angular/common';
 import { DocBlockComponent } from '../doc-block/doc-block';
 import { IconComponent } from '../../../shared/icon/icon.component';
-import { Block, BlockType } from '../../../shared/api.service';
+import { Block, BlockType, Page } from '../../../shared/api.service';
 import { ContentService } from '../../../shared/content.service';
 
 /** Owns the block array: drag reorder, Enter/Backspace split-merge, focus restoration. */
@@ -65,6 +65,12 @@ export class DocBlockListComponent implements AfterViewChecked {
     if (index === 0) return;
     const result = this.content.mergeBlockIntoPrevious(block.id);
     if (result) this.pendingFocus = { blockId: result.focusId, caretOffset: result.caretOffset };
+  }
+
+  /** RF-NODE-01: escribir [[ en un bloque de texto inserta un bloque `link` nuevo justo después, ya apuntando a la página elegida. */
+  onLinkInsertRequested(block: Block, page: Page): void {
+    const newId = this.content.insertBlockAfter(block.id, 'link');
+    this.content.setLinkTarget(newId, page);
   }
 
   // ─── Drag & Drop ────────────────────────────────────────────────────────

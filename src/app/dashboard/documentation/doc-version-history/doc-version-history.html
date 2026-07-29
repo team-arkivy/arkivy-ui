@@ -1,0 +1,34 @@
+<div class="doc-version-panel">
+  <div class="doc-version-panel-head">
+    <span>Historial de versiones</span>
+    <button class="doc-version-close" title="Cerrar" (click)="close.emit()">
+      <app-icon name="close" />
+    </button>
+  </div>
+
+  @if (content.versionsLoading()) {
+    <p class="doc-version-msg">Cargando historial...</p>
+  } @else if (content.versionsError()) {
+    <p class="doc-version-msg doc-version-msg-error">{{ content.versionsError() }}</p>
+  } @else if (content.pageVersions().length === 0) {
+    <p class="doc-version-msg">Todavía no hay versiones — se crean al enviar a revisión, aprobar o rechazar.</p>
+  } @else {
+    <ul class="doc-version-list">
+      @for (v of content.pageVersions(); track v.id) {
+        <li class="doc-version-item">
+          <app-icon [name]="triggerIcon[v.trigger]" class="doc-version-item-icon" [class]="'trigger-' + v.trigger" />
+          <div class="doc-version-item-body">
+            <div class="doc-version-item-head">
+              <span class="doc-version-trigger">{{ triggerLabel[v.trigger] }}</span>
+              <span class="doc-version-date">{{ v.createdAt | date: 'short' }}</span>
+            </div>
+            <p class="doc-version-diff">{{ diffSummary(v) }}</p>
+            @if (v.comment) {
+              <p class="doc-version-comment">"{{ v.comment }}"</p>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>

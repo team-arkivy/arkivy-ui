@@ -310,6 +310,109 @@ app-settings {
   color: #a78bfa;
 }
 
+/* ─── Plan y consumo ──────────────────────────────────────────── */
+
+.plan-msg {
+  font-family: var(--font-ui);
+  font-size: 0.83rem;
+  color: var(--dash-text-dim);
+}
+
+.plan-msg-error {
+  color: #f87171;
+  margin-bottom: 14px;
+}
+
+.usage-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.usage-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 9px;
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  background: rgba(10, 8, 22, 0.38);
+}
+
+.usage-label {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(200, 190, 255, 0.5);
+}
+
+.usage-value {
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--dash-text);
+}
+
+.plan-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  background: rgba(10, 8, 22, 0.38);
+}
+
+.plan-card.current {
+  border-color: rgba(139, 92, 246, 0.55);
+  background: rgba(109, 69, 212, 0.14);
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.14);
+}
+
+.plan-card-name {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--dash-text);
+}
+
+.plan-card-limits {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+}
+
+.plan-card-limits li {
+  font-family: var(--font-ui);
+  font-size: 0.76rem;
+  color: var(--dash-text-dim);
+}
+
+.plan-card-current-label {
+  align-self: flex-start;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #a78bfa;
+  letter-spacing: 0.02em;
+}
+
+.plan-card .btn-save {
+  align-self: flex-start;
+}
+
 /* ─── Responsive ─────────────────────────────────────────────── */
 
 @media (max-width: 500px) {
@@ -323,5 +426,9 @@ app-settings {
 
   .settings-profile-header {
     padding: 18px;
+  }
+
+  .usage-grid {
+    grid-template-columns: 1fr;
   }
 }

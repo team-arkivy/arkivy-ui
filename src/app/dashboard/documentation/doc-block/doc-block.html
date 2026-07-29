@@ -4,11 +4,14 @@
       #textRef
       class="notion-block"
       rows="1"
-      placeholder="Escribe algo..."
+      placeholder="Escribe algo... (tip: [[ para enlazar una página)"
       [value]="block.content"
       (input)="onInput($event)"
       (keydown)="onKeydown($event)"
     ></textarea>
+    @if (showLinkTrigger()) {
+      <app-doc-link-picker (picked)="onLinkTriggerPicked($event)" />
+    }
   }
   @case ('code') {
     <div class="doc-code-block">
@@ -62,13 +65,27 @@
   }
   @case ('link') {
     @if (linkTarget; as target) {
-      <div class="doc-link-chip">
-        <app-icon name="link" />
-        <span class="doc-file-name" (click)="navigateToLinkTarget()">{{ target.title }}</span>
-        <button class="doc-file-action doc-file-action-danger" type="button" title="Quitar" (click)="clearLinkTarget()">
-          <app-icon name="close" />
-        </button>
-      </div>
+      @if (target.broken) {
+        <div class="doc-link-chip doc-link-chip-broken">
+          <app-icon name="alert-triangle" />
+          <span class="doc-file-name">{{ target.title }}</span>
+          <span class="doc-link-broken-label">(página eliminada)</span>
+          <button class="doc-file-action" type="button" title="Crear página" (click)="recreateLinkTarget()">
+            <app-icon name="plus" />
+          </button>
+          <button class="doc-file-action doc-file-action-danger" type="button" title="Quitar enlace" (click)="clearLinkTarget()">
+            <app-icon name="close" />
+          </button>
+        </div>
+      } @else {
+        <div class="doc-link-chip">
+          <app-icon name="link" />
+          <span class="doc-file-name" (click)="navigateToLinkTarget()">{{ target.title }}</span>
+          <button class="doc-file-action doc-file-action-danger" type="button" title="Quitar" (click)="clearLinkTarget()">
+            <app-icon name="close" />
+          </button>
+        </div>
+      }
     } @else {
       <app-doc-link-picker (picked)="onLinkPicked($event)" />
     }

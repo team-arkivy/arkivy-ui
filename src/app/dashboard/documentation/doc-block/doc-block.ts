@@ -43,6 +43,7 @@ export class DocBlockComponent implements AfterViewInit {
   @Output() languageChange = new EventEmitter<string>();
   @Output() splitRequested = new EventEmitter<{ before: string; after: string }>();
   @Output() mergeRequested = new EventEmitter<void>();
+  @Output() linkInsertRequested = new EventEmitter<Page>();
 
   private content = inject(ContentService);
   private router = inject(Router);
@@ -56,13 +57,14 @@ export class DocBlockComponent implements AfterViewInit {
     if (this.textRef) this.autoResize(this.textRef.nativeElement);
   }
 
-  // ─── Bloque de enlace ────────────────────────────────────────────────────
-  // Sin backlinks/grafo todavía (Fase 5) — solo navegación directa.
+  // ─── Bloque de enlace (RF-NODE-02/03/05) ────────────────────────────────
 
-  get linkTarget(): { pageId: string; title: string } | null {
+  get linkTarget(): { pageId: string; title: string; broken: boolean } | null {
     const m = this.block.metadata;
     if (!m?.['targetPageId']) return null;
-    return { pageId: m['targetPageId'] as string, title: m['targetPageTitle'] as string };
+    const pageId = m['targetPageId'] as string;
+    const broken = !this.content.currentPageLinks().some(l => l.targetPageId === pageId);
+    return { pageId, title: m['targetPageTitle'] as string, broken };
   }
 
   onLinkPicked(page: Page): void {
@@ -76,6 +78,33 @@ export class DocBlockComponent implements AfterViewInit {
   navigateToLinkTarget(): void {
     const target = this.linkTarget;
     if (target) void this.router.navigate(['/dashboard/documentation', target.pageId]);
+  }
+
+  /** Enlace roto (RF-NODE-05): la página destino se borró — crea una nueva en su lugar, reusando el título cacheado. */
+  recreateLinkTarget(): void {
+    const target = this.linkTarget;
+    const page = this.content.currentPage();
+    if (!target || !page) return;
+    this.content.createPage(page.category, target.title).subscribe({
+      next: newPage => this.content.setLinkTarget(this.block.id, newPage),
+    });
+  }
+
+  // ─── Autocompletar [[ dentro de un bloque de texto (RF-NODE-01) ────────
+
+  readonly showLinkTrigger = signal(false);
+
+  onLinkTriggerPicked(page: Page): void {
+    const ta = this.textRef?.nativeElement;
+    let value = ta?.value ?? this.block.content;
+    if (value.endsWith('[[')) value = value.slice(0, -2);
+    this.contentChange.emit(value);
+    this.showLinkTrigger.set(false);
+    this.linkInsertRequested.emit(page);
+  }
+
+  cancelLinkTrigger(): void {
+    this.showLinkTrigger.set(false);
   }
 
   // ─── Bloque de archivo (RF-DOC-11) ──────────────────────────────────────
@@ -156,9 +185,17 @@ export class DocBlockComponent implements AfterViewInit {
     const ta = event.target as HTMLTextAreaElement;
     this.contentChange.emit(ta.value);
     this.autoResize(ta);
+    if (this.block.type === 'text' && ta.value.endsWith('[[')) {
+      this.showLinkTrigger.set(true);
+    }
   }
 
   onKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape' && this.showLinkTrigger()) {
+      event.preventDefault();
+      this.cancelLinkTrigger();
+      return;
+    }
     const ta = event.target as HTMLTextAreaElement;
     if (event.key === 'Enter') {
       event.preventDefault();

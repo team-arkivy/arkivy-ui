@@ -11,17 +11,41 @@
       <app-icon name="search" class="search-icon" />
       <input
         type="text"
-        placeholder="Search by name, email, group…"
+        placeholder="Buscar por nombre, email, rol…"
         [(ngModel)]="searchQuery"
         class="filter-input"
       />
     </div>
 
-    <button class="btn-add-user" (click)="openAddModal()">
-      <app-icon name="plus" />
-      Add user
-    </button>
+    @if (isPlatformAdmin) {
+      <button class="btn-add-user" (click)="openInviteModal()">
+        <app-icon name="plus" />
+        Invitar usuario
+      </button>
+    }
   </div>
+
+  @if (usersError()) {
+    <p class="users-error-banner">{{ usersError() }}</p>
+  }
+
+  <!-- ─── Invitaciones pendientes ────────────────────────────── -->
+  @if (isPlatformAdmin && invitations().length > 0) {
+    <div class="pending-invitations">
+      <span class="pending-invitations-title">Invitaciones pendientes</span>
+      <div class="pending-invitations-list">
+        @for (invitation of invitations(); track invitation.id) {
+          <div class="pending-invitation-chip">
+            <app-icon name="user" />
+            <span>{{ invitation.email }}</span>
+            <button class="pending-invitation-revoke" title="Revocar" (click)="revokeInvitation(invitation.id)">
+              <app-icon name="close" />
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
 
   <!-- ─── Tabla ──────────────────────────────────────────── -->
   <div class="table-wrapper">
@@ -30,53 +54,69 @@
         <tr>
           <th class="col-user">User</th>
           <th class="col-email">Email address</th>
-          <th class="col-group">Group</th>
+          <th class="col-group">Role</th>
           <th class="col-status">Status</th>
           <th class="col-access">Last access</th>
           <th class="col-actions"></th>
         </tr>
       </thead>
       <tbody>
-        @for (user of filteredUsers; track user.id) {
-          <tr class="user-row">
-            <td class="col-user">
-              <div class="user-cell">
-                <div class="user-avatar">{{ user.initials }}</div>
-                <div class="user-info">
-                  <span class="user-name">{{ user.name }}</span>
-                  <span class="user-id">{{ user.id }}</span>
+        @if (usersLoading()) {
+          <tr>
+            <td colspan="6" class="empty-row">Cargando usuarios...</td>
+          </tr>
+        } @else {
+          @for (user of filteredUsers; track user.id) {
+            <tr class="user-row">
+              <td class="col-user">
+                <div class="user-cell">
+                  <div class="user-avatar">{{ initials(user.name) }}</div>
+                  <div class="user-info">
+                    <span class="user-name">{{ user.name }}</span>
+                    <span class="user-id">{{ user.id }}</span>
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td class="col-email"><span class="cell-text">{{ user.email }}</span></td>
-            <td class="col-group"><span class="cell-text">{{ user.group }}</span></td>
-            <td class="col-status">
-              <span class="status-badge" [class.active]="user.status === 'Active'">
-                {{ user.status }}
-              </span>
-            </td>
-            <td class="col-access"><span class="cell-text">{{ user.lastAccess }}</span></td>
-            <td class="col-actions">
-              <div class="row-menu-wrap">
-                <button class="row-action-btn" (click)="toggleMenu(user.id, $event)">
-                  <app-icon name="more-vertical" />
-                </button>
-                @if (openMenuId === user.id) {
-                  <div class="row-dropdown">
-                    <button class="row-dd-item danger" (click)="deleteUser(user.id)">
-                      <app-icon name="trash" class="dd-icon" />
-                      Delete
+              </td>
+              <td class="col-email"><span class="cell-text">{{ user.email }}</span></td>
+              <td class="col-group">
+                <span class="role-badge" [class.role-admin]="roleLabel(user) === 'Platform Admin'">{{ roleLabel(user) }}</span>
+              </td>
+              <td class="col-status">
+                <span class="status-badge" [class.active]="user.status === 'active'">
+                  {{ user.status === 'active' ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td class="col-access">
+                <span class="cell-text">{{ user.lastAccessAt ? (user.lastAccessAt | date: 'medium') : '—' }}</span>
+              </td>
+              <td class="col-actions">
+                @if (isPlatformAdmin) {
+                  <div class="row-menu-wrap">
+                    <button class="row-action-btn" (click)="toggleMenu(user.id, $event)">
+                      <app-icon name="more-vertical" />
                     </button>
+                    @if (openMenuId === user.id) {
+                      <div class="row-dropdown">
+                        <button class="row-dd-item" (click)="toggleStatus(user)">
+                          <app-icon [name]="user.status === 'active' ? 'x-circle' : 'check'" class="dd-icon" />
+                          {{ user.status === 'active' ? 'Desactivar' : 'Reactivar' }}
+                        </button>
+                        <button class="row-dd-item danger" (click)="requestDeleteUser(user)">
+                          <app-icon name="trash" class="dd-icon" />
+                          Delete
+                        </button>
+                      </div>
+                    }
                   </div>
                 }
-              </div>
-            </td>
-          </tr>
-        }
-        @if (filteredUsers.length === 0) {
-          <tr>
-            <td colspan="6" class="empty-row">No users match your search.</td>
-          </tr>
+              </td>
+            </tr>
+          }
+          @if (filteredUsers.length === 0) {
+            <tr>
+              <td colspan="6" class="empty-row">No users match your search.</td>
+            </tr>
+          }
         }
       </tbody>
     </table>
@@ -101,80 +141,54 @@
 
 </div>
 
-<!-- ─── Modal: Add user ───────────────────────────────────── -->
-@if (showAddModal) {
-  <div class="modal-overlay" (click)="closeAddModal()">
+<!-- ─── Modal: Invitar usuario ─────────────────────────────── -->
+@if (showInviteModal) {
+  <div class="modal-overlay" (click)="closeInviteModal()">
     <div class="modal-card" (click)="$event.stopPropagation()">
 
       <div class="modal-header">
-        <h2 class="modal-title">Add user</h2>
-        <button class="modal-close" (click)="closeAddModal()">
+        <h2 class="modal-title">Invitar usuario</h2>
+        <button class="modal-close" (click)="closeInviteModal()">
           <app-icon name="close" />
         </button>
       </div>
 
       <div class="modal-body">
         <div class="form-group">
-          <label class="form-label">Full name <span class="required">*</span></label>
-          <input
-            type="text"
-            class="form-input"
-            placeholder="e.g. Ana García"
-            [(ngModel)]="addForm.name"
-          />
-        </div>
-
-        <div class="form-group">
           <label class="form-label">Email address <span class="required">*</span></label>
           <input
             type="email"
             class="form-input"
-            placeholder="user@empresa.com"
-            [(ngModel)]="addForm.email"
+            placeholder="usuario@empresa.com"
+            [(ngModel)]="inviteEmail"
+            (keydown.enter)="submitInvite()"
           />
         </div>
+        <p class="invite-hint">No se envía ningún correo — la persona queda vinculada a esta Organización apenas inicie sesión con este mismo email.</p>
 
-        <div class="form-group">
-          <label class="form-label">Group <span class="required">*</span></label>
-          <input
-            type="text"
-            class="form-input"
-            placeholder="e.g. Desarrolladores"
-            [(ngModel)]="addForm.group"
-          />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Status</label>
-          <div class="toggle-row">
-            <button
-              class="toggle-btn"
-              [class.selected]="addForm.status === 'Active'"
-              (click)="addForm.status = 'Active'">
-              Active
-            </button>
-            <button
-              class="toggle-btn"
-              [class.selected]="addForm.status === 'Inactive'"
-              (click)="addForm.status = 'Inactive'">
-              Inactive
-            </button>
-          </div>
-        </div>
-
-        @if (addError) {
-          <p class="form-error">{{ addError }}</p>
+        @if (inviteError()) {
+          <p class="form-error">{{ inviteError() }}</p>
         }
       </div>
 
       <div class="modal-footer">
-        <button class="btn-cancel" (click)="closeAddModal()">Cancel</button>
-        <button class="btn-confirm" (click)="submitAddUser()">
+        <button class="btn-cancel" (click)="closeInviteModal()">Cancel</button>
+        <button class="btn-confirm" [disabled]="inviteBusy()" (click)="submitInvite()">
           <app-icon name="plus" />
-          Add user
+          Invitar
         </button>
       </div>
 
     </div>
   </div>
+}
+
+<!-- ─── Confirmar eliminar usuario ─────────────────────────── -->
+@if (confirmDeleteUser; as user) {
+  <app-confirm-dialog
+    title="Eliminar usuario"
+    [message]="'Esto elimina a &quot;' + user.name + '&quot; de la Organización. Esta acción no se puede deshacer.'"
+    (confirm)="confirmDeleteUserNow()"
+    (cancel)="cancelDeleteUser()"
+  />
 }

@@ -26,6 +26,15 @@
         <app-icon name="settings" class="tab-icon" />
         Preferencias
       </button>
+      @if (isPlatformAdmin) {
+        <button
+          class="settings-tab"
+          [class.active]="activeTab() === 'plan'"
+          (click)="setTab('plan')">
+          <app-icon name="grid" class="tab-icon" />
+          Plan
+        </button>
+      }
     </div>
 
     <!-- ─── Panel: Perfil ───────────────────────────────────── -->
@@ -129,5 +138,80 @@
       </div>
     }
 
+    <!-- ─── Panel: Plan ─────────────────────────────────────── -->
+    @if (activeTab() === 'plan') {
+      <div class="settings-panel">
+        @if (usageLoading()) {
+          <p class="plan-msg">Cargando consumo...</p>
+        } @else if (usageError() && !usage()) {
+          <p class="plan-msg plan-msg-error">{{ usageError() }}</p>
+        } @else if (usage(); as u) {
+          <div class="settings-section-title">Consumo actual — plan {{ u.plan.name }}</div>
+
+          @if (usageError()) {
+            <p class="plan-msg plan-msg-error">{{ usageError() }}</p>
+          }
+
+          <div class="usage-grid">
+            <div class="usage-card">
+              <span class="usage-label">Espacios</span>
+              <span class="usage-value">{{ u.usage.spaces }} / {{ u.plan.maxSpaces ?? 'Ilimitado' }}</span>
+            </div>
+            <div class="usage-card">
+              <span class="usage-label">Páginas</span>
+              <span class="usage-value">{{ u.usage.pages }} / {{ u.plan.maxPages ?? 'Ilimitado' }}</span>
+            </div>
+            <div class="usage-card">
+              <span class="usage-label">Grupos</span>
+              <span class="usage-value">{{ u.usage.groups }} / {{ u.plan.maxGroups ?? 'Ilimitado' }}</span>
+            </div>
+            <div class="usage-card">
+              <span class="usage-label">Miembros</span>
+              <span class="usage-value">{{ u.usage.members }} / {{ u.plan.maxMembers }}</span>
+            </div>
+            <div class="usage-card">
+              <span class="usage-label">Almacenamiento</span>
+              <span class="usage-value">{{ formatBytes(u.usage.storageUsedBytes) }} / {{ formatBytes(u.plan.maxStorageBytes) }}</span>
+            </div>
+          </div>
+
+          <div class="settings-section-title">Cambiar de plan</div>
+          <div class="plan-grid">
+            @for (plan of plans(); track plan.id) {
+              <div class="plan-card" [class.current]="plan.id === u.plan.id">
+                <span class="plan-card-name">{{ plan.name }}</span>
+                <ul class="plan-card-limits">
+                  <li>{{ plan.maxSpaces ?? 'Ilimitado' }} Espacios</li>
+                  <li>{{ plan.maxPages ?? 'Ilimitado' }} Páginas</li>
+                  <li>{{ formatBytes(plan.maxStorageBytes) }} de almacenamiento</li>
+                  <li>{{ plan.maxMembers }} miembros</li>
+                  <li>{{ plan.maxGroups ?? 'Ilimitado' }} Grupos</li>
+                </ul>
+                @if (plan.id === u.plan.id) {
+                  <span class="plan-card-current-label">Plan actual</span>
+                } @else {
+                  <button
+                    class="btn-save"
+                    [disabled]="changingPlan()"
+                    (click)="requestPlanChange(plan)">
+                    Elegir este plan
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
   </div>
 </div>
+
+@if (confirmPlan; as plan) {
+  <app-confirm-dialog
+    title="Cambiar de plan"
+    [message]="'¿Cambiar al plan &quot;' + plan.name + '&quot;? Esto puede afectar los límites disponibles para tu Organización.'"
+    confirmLabel="Cambiar plan"
+    (confirm)="confirmPlanChangeNow()"
+    (cancel)="cancelPlanChange()" />
+}
